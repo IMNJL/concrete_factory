@@ -1,0 +1,12 @@
+*.pdf
+*.docx
+*.doc
+1.xml
+site/images/*
+*.png
+*.jpg
+*.jpeg
+*.json  
+server/node_modules/*
+server/
+.env
