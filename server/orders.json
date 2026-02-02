@@ -540,5 +540,27 @@
         "buyerEmail": "kgrigor2019@yandex.ru"
       }
     }
+  },
+  {
+    "receivedAt": "2026-02-02T12:37:22.805Z",
+    "body": {
+      "markdown": "| № | Марка | Объём (м³) | Цена/м³ | Стоимость |\n|---:|---|---:|---:|---:\n| 1 | M100 | 1 | 2 500 ₽ | 2 500 ₽ |\n\n**Материал:** 2 500 ₽\n**Доставка (5 км):** 1 750 ₽\n**Итог:** 4 250 ₽\n\n**Покупатель:** dsas das\n**Телефон:** 89807106171\n**Email:** kgrigor2019@yandex.ru",
+      "order": {
+        "details": [
+          {
+            "mark": "M100",
+            "vol": 1,
+            "price": 2500,
+            "cost": 2500
+          }
+        ],
+        "materialTotal": 2500,
+        "delivery": 1750,
+        "total": 4250,
+        "buyerName": "dsas das",
+        "buyerPhone": "89807106171",
+        "buyerEmail": "kgrigor2019@yandex.ru"
+      }
+    }
   }
 ]
