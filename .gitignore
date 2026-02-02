@@ -11,3 +11,7 @@ server/node_modules/*
 # server/
 .env
 *.DS_Store*
+
+# GitHub Pages build output
+dist/
+.dist/
