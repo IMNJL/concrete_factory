@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
   let concretePriceInfoPromise = null
   function loadConcretePriceInfo(){
     if(concretePriceInfoPromise) return concretePriceInfoPromise
-    concretePriceInfoPromise = fetch('/assets/concretePriceInfo.json')
+    concretePriceInfoPromise = fetch('assets/concretePriceInfo.json')
       .then(r=> r.ok ? r.json() : null)
       .catch(()=>null)
     return concretePriceInfoPromise
