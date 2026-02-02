@@ -1,12 +1,13 @@
 *.pdf
-*.docx
+# *.docx
 *.doc
 1.xml
 site/images/*
-*.png
-*.jpg
+# *.png
+# *.jpg
 *.jpeg
-*.json  
+# *.json  
 server/node_modules/*
-server/
+# server/
 .env
+*.DS_Store*

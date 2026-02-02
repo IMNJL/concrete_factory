@@ -6,23 +6,30 @@
   <title>БЕТОННЫЙ ЗАВОД — Главная</title>
   <meta name="description" content="Бетонный завод — прайс, калькулятор, контакты, сертификаты" />
   <link rel="stylesheet" href="css/styles.css">
+  <base href="/"> <!-- for relative links to work correctly -->
 </head>
 <body>
-  <header style="background-image: url('assets/documents/1сторона.jpg'); background-size: cover; background-position: center;">
+  <header style="background-image: url('assets/documents/background.jpg'); background-size: cover; background-position: center;">
     <div class="logo">
-      <img src="../assets/logos/logo.png" alt="БРУ Кременкуль" style="height: 80px;">
+      <img src="assets/logos/logo.png" alt="БРУ Кременкуль" style="height: 80px;">
       <div>
         <div style="font-weight:800">Бетонный завод "Кременкуль"</div>
-        <div class="small">Производство готового бетона и растворов</div>
+        <div class="medium">Производство готового бетона и растворов</div>
       </div>
     </div>
-    <nav>
-      <a href="#home">Главная</a>
-      <a href="#prices">Прайс</a>
-      <a href="#calculator">Калькулятор</a>
-      <a href="#tech">Технолог</a>
-      <a href="#contacts">Контакты</a>
-    </nav>
+    <div class="header-right">
+      <div class="header-contacts">
+        <a class="header-contact" href="tel:+79123146115">8-912-314-61-15</a>
+        <a class="header-contact" href="mailto:kgrigor2019@yandex.ru">kgrigor2019@yandex.ru</a>
+      </div>
+      <nav>
+        <a href="#home">Главная</a>
+        <a href="#prices">Прайс</a>
+        <a href="#calculator">Калькулятор</a>
+        <a href="#tech">Технолог</a>
+        <a href="#contacts">Контакты</a>
+      </nav>
+    </div>
   </header>
 
   <main>
@@ -43,17 +50,17 @@
       <aside class="card">
         <h3>Контакты</h3>
         <div class="small">Телефон</div>
-        <div style="font-weight:800;margin-bottom:8px">+7 (900) 123-45-67</div>
+        <div style="font-weight:800;margin-bottom:8px">8-912-314-61-15</div>
         <div class="small">Адрес</div>
-        <div>г. Челябинск, Промзона, ул. Заводская, 12</div>
+        <div>454047, г. Челябинск, ул. Павелецкая 2-ая, 18, офис 117</div>
         <div style="margin-top:12px" class="small">Реквизиты</div>
-        <div class="small">ООО "Бетонстрой" ИНН 7700000000</div>
+        <div class="small">ООО «БРУ Кременкуль» ИНН 7460011413</div>
       </aside>
     </section>
 
     <section id="prices" class="card">
       <h2>Прайс</h2>
-      <p class="small">Актуальные цены можно менять в админке. Цены указаны за 1 м³.</p>
+      <p class="small">Цены указаны за 1 м³.</p>
       <div id="priceTable" style="margin-top:12px"></div>
     </section>
 
@@ -75,17 +82,36 @@
 
         <div style="display:flex;gap:8px;margin-top:12px">
           <button id="calcBtn" class="button">Рассчитать</button>
-          <button id="clearBtn" style="padding:8px 12px;border-radius:8px;border:1px solid #ddd;background:white;cursor:pointer">Сброс</button>
+          <button id="clearBtn" class="button secondary" type="button">Сброс</button>
         </div>
         <div id="calcResult" class="calc-result">—</div>
 
+        <hr style="margin:14px 0">
+        <h3 style="margin:0 0 8px">Калькулятор объёма фундамента</h3>
+        <div class="small">Формула: длина × ширина × высота (в метрах).</div>
+
+        <label for="foundationLength">Длина (м)</label>
+        <input id="foundationLength" type="number" min="0" step="0.01" placeholder="например: 10" inputmode="decimal">
+
+        <label for="foundationWidth">Ширина (м)</label>
+        <input id="foundationWidth" type="number" min="0" step="0.01" placeholder="например: 8" inputmode="decimal">
+
+        <label for="foundationHeight">Высота (м)</label>
+        <input id="foundationHeight" type="number" min="0" step="0.01" placeholder="например: 0.6" inputmode="decimal">
+
+        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+          <button id="volumeCalcBtn" class="button" type="button">Рассчитать объём</button>
+          <button id="volumeClearBtn" class="button secondary" type="button">Сброс</button>
+        </div>
+        <div id="volumeResult" class="calc-result">—</div>
+
         <h4 style="margin-top:12px">Данные покупателя</h4>
         <label for="buyerName">Имя</label>
-        <input id="buyerName" type="text" placeholder="Иван Иванов" />
+        <input id="buyerName" name="buyerName" type="text" placeholder="Иван Иванов" autocomplete="name" required />
         <label for="buyerPhone">Телефон</label>
-        <input id="buyerPhone" type="tel" placeholder="+7 (900) 123-45-67" />
-        <label for="buyerEmail">Email</label>
-        <input id="buyerEmail" type="email" placeholder="mail@example.com" />
+        <input id="buyerPhone" name="buyerPhone" type="tel" placeholder="+7 (900) 123-45-67" autocomplete="tel" required />
+        <label for="buyerEmail">Email для связи</label>
+        <input id="buyerEmail" name="buyerEmail" type="email" placeholder="client@example.com" autocomplete="email" required />
 
         <div style="display:flex;gap:8px;margin-top:12px">
           <button id="submitOrder" class="button">Отправить заказ</button>
@@ -93,7 +119,7 @@
         </div>
       </div>
     </section>
-
+ 
     <section id="tech" class="card">
       <h2>Страница технолога</h2>
       <div style="display:flex;gap:12px;flex-wrap:wrap">
@@ -105,9 +131,9 @@
         <div style="flex:1;min-width:220px">
           <h3>Сертификаты и файлы</h3>
           <div class="cert-list">
-            <a href="files/certificate-1.pdf" target="_blank">Паспорт качества — см. PDF</a>
-            <a href="files/certificate-2.pdf" target="_blank">Сертификат соответствия</a>
-            <a href="files/how-to-care.pdf" target="_blank">Как ухаживать за бетоном — инструкция</a>
+            <a href="assets/documents/%D0%9A%D0%B0%D1%80%D1%82%D0%B0%20%D0%9F%D0%9A%20%D0%91%D0%B5%D1%82%D0%BE%D0%BD%20%D1%81%D0%BA%D0%B0%D0%BD%20.jpg" target="_blank" rel="noopener">Карточка предприятия (скан, JPG)</a>
+            <a href="assets/documents/BRU_presentation.pdf" target="_blank" rel="noopener">Презентация БРУ (PDF)</a>
+            <a href="assets/documents/Technolog.pdf" target="_blank" rel="noopener">Страница технолога (PDF)</a>
           </div>
         </div>
       </div>
@@ -120,11 +146,11 @@
           <h4>Адрес</h4>
           <div>г. Челябинск, ул. Заводская, 12</div>
           <h4 style="margin-top:10px">Телефон</h4>
-          <div>+7 (900) 123-45-67</div>
+          <div>8-912-314-61-15</div>
         </div>
         <div>
           <h4>Реквизиты</h4>
-          <div class="small">ООО "Бетонстрой"<br>ИНН 7700000000<br>р/с 40702810700000000001</div>
+          <div class="small">ООО «БРУ Кременкуль»<br>ИНН 7460011413</div>
         </div>
         <div>
           <h4>Локация</h4>
@@ -132,6 +158,20 @@
           <iframe id="mapFrame" src="https://yandex.ru/map-widget/v1/?ll=61.400287%2C55.160505&z=14" style="width:100%;height:160px;border:0;border-radius:8px"></iframe>
         </div>
       </div>
+
+      <hr style="margin:14px 0">
+      <h3 style="margin:0 0 10px">Напишите нам</h3>
+      <form id="contactForm" action="/sendform" method="POST" style="max-width:520px">
+        <input type="text" name="name" placeholder="Ваше имя" autocomplete="name" required>
+        <input type="email" name="email" placeholder="Email для связи" autocomplete="email" required>
+        <input type="tel" name="phone" placeholder="Телефон (необязательно)" autocomplete="tel">
+        <input type="text" name="title" placeholder="Тема (необязательно)">
+        <textarea name="message" placeholder="Сообщение" required rows="5" style="resize:vertical"></textarea>
+        <div style="display:flex;gap:10px;align-items:center;margin-top:10px">
+          <button type="submit" class="button">Отправить</button>
+          <div id="contactStatus" class="small">—</div>
+        </div>
+      </form>
     </section>
   </main>
 </body>
@@ -147,7 +187,7 @@
   <!-- Admin modal (simple) -->
   <div id="adminModal" style="display:none;position:fixed;inset:0;background:rgba(2,6,23,0.6);padding:20px">
     <div style="max-width:900px;margin:60px auto;background:white;border-radius:12px;padding:18px;position:relative">
-      <button id="closeAdmin" style="position:absolute;right:12px;top:12px">✕</button>
+      <button id="closeAdmin" class="button secondary" style="position:absolute;right:12px;top:12px">✕</button>
       <h3>Админ-панель (локально)</h3>
       <p class="small">Здесь можно менять прайс, параметры карты и скачать/загрузить прайс в формате JSON. Пароль по умолчанию: <strong>admin123</strong></p>
       <div style="display:flex;gap:12px;flex-wrap:wrap">
@@ -159,7 +199,7 @@
         <div style="flex:1;min-width:320px">
           <label>Координаты/Frame src карты</label>
           <input id="mapSrc" placeholder="Ссылка для iframe карты" />
-          <button id="saveMap" style="margin-top:8px">Сохранить карту</button>
+          <button id="saveMap" style="margin-top:8px" class="button">Сохранить карту</button>
         </div>
       </div>
 
@@ -170,7 +210,7 @@
         <div style="display:flex;gap:8px;margin-top:10px">
           <input id="newMark" placeholder="М250" />
           <input id="newPrice" placeholder="4200" type="number" />
-          <button id="addPrice">Добавить</button>
+          <button id="addPrice" class="button">Добавить</button>
         </div>
         <div style="margin-top:12px;display:flex;gap:8px">
           <button id="exportJson" class="button">Скачать прайс (JSON)</button>

@@ -147,6 +147,43 @@ document.addEventListener('DOMContentLoaded', ()=>{
     })
   }
 
+  // foundation volume calculator
+  const volumeCalcBtn = document.getElementById('volumeCalcBtn')
+  const volumeClearBtn = document.getElementById('volumeClearBtn')
+  const volumeResult = document.getElementById('volumeResult')
+  const foundationLength = document.getElementById('foundationLength')
+  const foundationWidth = document.getElementById('foundationWidth')
+  const foundationHeight = document.getElementById('foundationHeight')
+
+  function parseNum(val){
+    if(val==null) return NaN
+    return parseFloat(String(val).replace(',', '.'))
+  }
+
+  if(volumeCalcBtn && volumeResult && foundationLength && foundationWidth && foundationHeight){
+    volumeCalcBtn.addEventListener('click', ()=>{
+      const l = parseNum(foundationLength.value)
+      const w = parseNum(foundationWidth.value)
+      const h = parseNum(foundationHeight.value)
+      if(!isFinite(l) || !isFinite(w) || !isFinite(h) || l<=0 || w<=0 || h<=0){
+        volumeResult.textContent = 'Введите длину, ширину и высоту > 0'
+        return
+      }
+      const v = l*w*h
+      const vStr = (Math.round(v*1000)/1000).toString().replace('.', ',')
+      volumeResult.textContent = `Объём: ${vStr} м³`
+    })
+  }
+
+  if(volumeClearBtn && volumeResult){
+    volumeClearBtn.addEventListener('click', ()=>{
+      if(foundationLength) foundationLength.value = ''
+      if(foundationWidth) foundationWidth.value = ''
+      if(foundationHeight) foundationHeight.value = ''
+      volumeResult.textContent = '—'
+    })
+  }
+
   if(addTypeBtn && typesContainer){
     addTypeBtn.addEventListener('click', ()=>{
       typesContainer.appendChild(createTypeRow())
@@ -161,7 +198,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
       const buyerName = (document.getElementById('buyerName')||{}).value || ''
       const buyerPhone = (document.getElementById('buyerPhone')||{}).value || ''
       const buyerEmail = (document.getElementById('buyerEmail')||{}).value || ''
-      if(!buyerName || !buyerPhone){ alert('Пожалуйста, укажите имя и телефон покупателя.'); return }
+      if(!buyerName || !buyerPhone || !buyerEmail){ alert('Пожалуйста, укажите имя, телефон и email покупателя.'); return }
 
   const res = computeTotals()
   if(res.error){ alert(res.error); return }
@@ -181,7 +218,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
       lines.push('')
       lines.push(`**Покупатель:** ${buyerName}`)
       lines.push(`**Телефон:** ${buyerPhone}`)
-      lines.push(`**Email:** ${buyerEmail || '-'} `)
+      lines.push(`**Email:** ${buyerEmail}`)
 
       const md = lines.join('\n')
 
@@ -192,11 +229,49 @@ document.addEventListener('DOMContentLoaded', ()=>{
           body: JSON.stringify({ markdown: md, order:{details, materialTotal, delivery, total, buyerName, buyerPhone, buyerEmail} })
         })
         if(!resp.ok) throw new Error(await resp.text())
-        submitStatus.textContent = 'Отправлено — проверьте почту предприятия.'
+        const data = await resp.json().catch(()=>null)
+        if(data && data.email && data.email.attempted && !data.email.sent){
+          submitStatus.textContent = 'Заказ сохранён, но письмо не отправлено (SMTP).'
+          alert('Заказ сохранён на сервере, но письмо не отправилось.\nПричина: ' + (data.email.error || 'unknown'))
+        } else {
+          submitStatus.textContent = 'Отправлено — проверьте почту предприятия.'
+        }
       }catch(err){
         console.error(err)
         submitStatus.textContent = 'Ошибка отправки (см. консоль)'
         alert('Ошибка отправки заказа. Сервер может быть не запущен или неверные настройки SMTP.\n' + err.message)
+      }
+    })
+  }
+
+  // contact form submit
+  const contactForm = document.getElementById('contactForm')
+  const contactStatus = document.getElementById('contactStatus')
+  if(contactForm){
+    contactForm.addEventListener('submit', async (e)=>{
+      e.preventDefault()
+      if(contactStatus) contactStatus.textContent = 'Отправка...'
+      try{
+        const fd = new FormData(contactForm)
+        const payload = Object.fromEntries(fd.entries())
+        const resp = await fetch('/sendform', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify(payload)
+        })
+        const data = await resp.json().catch(()=>null)
+        if(resp.ok && data && data.ok){
+          if(contactStatus) contactStatus.textContent = 'Отправлено.'
+          contactForm.reset()
+          return
+        }
+        const msg = (data && (data.error || data.message)) ? String(data.error || data.message) : 'Не удалось отправить'
+        if(contactStatus) contactStatus.textContent = 'Ошибка (SMTP/сеть)'
+        alert('Сообщение сохранено на сервере, но не отправлено на почту.\nПричина: ' + msg)
+      }catch(err){
+        console.error(err)
+        if(contactStatus) contactStatus.textContent = 'Ошибка'
+        alert('Ошибка отправки формы.\n' + err.message)
       }
     })
   }

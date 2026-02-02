@@ -5,6 +5,11 @@
   --background-color: #F3F9FF; /* Light background */
   --text-color: #333333; /* Neutral text */
   --container-max: 1100px;
+  --header-offset: 120px;
+  --card: #ffffff;
+  --muted: #5b6777;
+  --accent: var(--accent-color);
+  --ring: rgba(0, 164, 239, 0.35);
 }
 
 * {
@@ -16,6 +21,10 @@ body {
   margin: 0;
   background-color: #F3F9FF;
   color: var(--text-color);
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 .container {
@@ -40,6 +49,37 @@ header {
   right: 0;
   z-index: 1000;
   margin-bottom: 0;
+}
+
+.header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.header-contacts {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+  line-height: 1.1;
+}
+
+.header-contact {
+  color: #067;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 23px;
+  opacity: 0.95;
+}
+
+.header-contact:hover {
+  opacity: 1;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 /* Logo styles */
@@ -69,7 +109,17 @@ nav a {
   color: var(--accent-color);
   text-decoration: none;
   margin-left: 18px;
+  font-size: 25px;
   font-weight: 600;
+  opacity: 0.95;
+  transition: opacity 0.15s ease, text-decoration-color 0.15s ease;
+}
+
+nav a:hover {
+  opacity: 1;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
 }
 
 /* Hero section styles */
@@ -79,7 +129,7 @@ nav a {
   grid-template-columns: 1fr 380px;
   gap: 24px;
   align-items: start;
-  margin-top: 60px;
+  margin-top: 0;
 }
 
 /* Card styles */
@@ -88,6 +138,7 @@ nav a {
   padding: 18px;
   border-radius: 12px;
   box-shadow: 0 6px 18px rgba(16, 24, 40, 0.06);
+  border: 1px solid rgba(0, 90, 158, 0.08);
 }
 
 /* Heading and text styles */
@@ -117,8 +168,11 @@ h1 {
 
 /* Price table styles */
 .price-row {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: max-content max-content;
+  column-gap: 70px;
+  align-items: baseline;
+  justify-content: start;
   padding: 10px 0;
   border-bottom: 1px dashed #eee;
 }
@@ -143,17 +197,32 @@ label {
 }
 
 input,
-select {
+select,
+textarea {
   width: 100%;
   padding: 10px;
   border-radius: 8px;
   border: 1px solid #e5e7eb;
+  background: #fff;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--ring);
 }
 
 .calc-result {
   font-size: 20px;
   font-weight: 800;
   margin-top: 12px;
+  padding: 12px;
+  background: linear-gradient(180deg, rgba(0, 164, 239, 0.10), rgba(0, 120, 215, 0.06));
+  border: 1px solid rgba(0, 90, 158, 0.12);
+  border-radius: 10px;
 }
 
 /* Layout sections */
@@ -161,11 +230,15 @@ main {
   max-width: 1100px;
   margin: 18px auto;
   padding: 0 20px;
-  padding-top: 90px; /* safe default: header height (~64px) + spacing */
+  padding-top: var(--header-offset);
 }
 
 section {
   margin-bottom: 18px;
+}
+
+section[id] {
+  scroll-margin-top: calc(var(--header-offset) + 10px);
 }
 
 .grid-3 {
@@ -199,6 +272,10 @@ footer {
 
   nav a {
     display: none;
+  }
+
+  .header-contacts {
+    justify-content: flex-end;
   }
 }
 
@@ -237,8 +314,8 @@ td {
   white-space: nowrap;
 }
 
-.small {
-  font-size: 13px;
+.medium {
+  font-size: 19px;
   color: var(--muted);
 }
 
@@ -248,14 +325,41 @@ td {
   gap: 8px;
 }
 
+.button,
 a.button {
   display: inline-block;
   padding: 8px 12px;
-  border-radius: 8px;
-  background: var(--accent);
-  color: #023;
+  border-radius: 9999px;
+  background: linear-gradient(180deg, rgba(0, 164, 239, 1), rgba(0, 120, 215, 1));
+  color: #fff;
   font-weight: 700;
   text-decoration: none;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.06s ease, filter 0.15s ease;
+}
+
+.button:hover {
+  background: #fff;
+  color: var(--primary-color);
+  border-color: grey;
+  filter: none;
+}
+
+.button:active {
+  transform: translateY(1px);
+}
+
+.button.secondary {
+  background: #ffffff;
+  border: 2px solid rgba(2, 6, 23, 0.16);
+  color: #111;
+}
+
+.button.secondary:hover {
+  background: linear-gradient(180deg, rgba(0, 164, 239, 1), rgba(0, 120, 215, 1));
+  color: #fff;
+  border-color: grey;
 }
 
 /* Slider styles */
