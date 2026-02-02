@@ -25,17 +25,233 @@ document.addEventListener('DOMContentLoaded', ()=>{
   // --- Utils ---
   function formatPrice(n){ return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }
 
+  function escapeHtml(s){
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;')
+  }
+
+  function formatRubles(n){
+    if(n === null || n === undefined || n === '') return ''
+    const num = Number(n)
+    if(!isFinite(num)) return escapeHtml(n)
+    return `${formatPrice(Math.round(num))} ₽`
+  }
+
+  let concretePriceInfoPromise = null
+  function loadConcretePriceInfo(){
+    if(concretePriceInfoPromise) return concretePriceInfoPromise
+    concretePriceInfoPromise = fetch('/assets/concretePriceInfo.json')
+      .then(r=> r.ok ? r.json() : null)
+      .catch(()=>null)
+    return concretePriceInfoPromise
+  }
+
+  function renderConcretePriceSheet(data, container){
+    if(!data || !container) return
+
+    const meta = data.meta || {}
+    const contacts = data.contacts || {}
+    const title = meta.title ? escapeHtml(meta.title) : 'Прайс-лист'
+    const effective = meta.effectiveFrom ? `с ${escapeHtml(meta.effectiveFrom)}` : ''
+    const note = meta.headerNote ? escapeHtml(meta.headerNote) : ''
+    const site = meta.site ? escapeHtml(meta.site) : ''
+
+    const headerLeft = `
+      <div class="price-sheet-title">${title}${effective ? ` <span class=\"price-sheet-date\">${effective}</span>` : ''}</div>
+      ${note ? `<div class=\"price-sheet-note\">${note}</div>` : ''}
+    `.trim()
+
+    const headerRightParts = []
+    if(contacts.salesPhone){
+      headerRightParts.push(`<div class=\"price-sheet-contact\"><span class=\"small\">${escapeHtml(contacts.salesLabel || 'Отдел продаж: ')}</span><a href=\"tel:${escapeHtml(String(contacts.salesPhone).replace(/\D/g,''))}\">${escapeHtml(contacts.salesPhone)}</a></div>`)
+    }
+    if(site){
+      headerRightParts.push(`<div class=\"price-sheet-site\">${site}</div>`)
+    }
+    const headerRight = headerRightParts.length ? `<div class="price-sheet-right">${headerRightParts.join('')}</div>` : ''
+
+    const sections = Array.isArray(data.sections) ? data.sections : []
+    const sectionsHtml = sections.map(sec=>{
+      if(!sec || sec.type !== 'table') return ''
+      const secTitle = sec.title ? escapeHtml(sec.title) : ''
+      const subtitle = sec.subtitle ? `<div class=\"price-section-subtitle\">${escapeHtml(sec.subtitle)}</div>` : ''
+
+      const cols = Array.isArray(sec.columns) ? sec.columns : []
+      const rows = Array.isArray(sec.rows) ? sec.rows : []
+
+      const colKeys = cols.map(c=>c && c.key).filter(Boolean)
+      const isFiveColPrice = cols.length === 5 && colKeys.includes('price') && colKeys.includes('priceVat')
+      const isThreeColPrice = cols.length === 3 && colKeys.includes('price') && colKeys.includes('priceVat')
+      const colgroup = (isFiveColPrice || isThreeColPrice)
+        ? (()=>{
+            if(isFiveColPrice){
+              // First three columns (Марка/Класс/F) together ~1/3 width
+              return `<colgroup>
+                <col style=\"width:11.11%\">
+                <col style=\"width:11.11%\">
+                <col style=\"width:11.11%\">
+                <col style=\"width:33.33%\">
+                <col style=\"width:33.33%\">
+              </colgroup>`
+            }
+            // 3-col tables: keep first column about 1/3
+            return `<colgroup>
+              <col style=\"width:33.33%\">
+              <col style=\"width:33.33%\">
+              <col style=\"width:33.33%\">
+            </colgroup>`
+          })()
+        : ''
+
+      const thead = cols.length
+        ? `<thead><tr>${cols.map(c=>`<th>${escapeHtml(c.label || c.key || '')}</th>`).join('')}</tr></thead>`
+        : ''
+
+      const tbody = `<tbody>${rows.map(r=>{
+        const tds = cols.length
+          ? cols.map(c=>{
+              const key = c.key
+              const val = (r && key in r) ? r[key] : ''
+              if(key === 'price' || key === 'priceVat') return `<td class=\"price-cell\">${formatRubles(val)}</td>`
+              return `<td>${escapeHtml(val)}</td>`
+            }).join('')
+          : Object.values(r||{}).map(v=>`<td>${escapeHtml(v)}</td>`).join('')
+        return `<tr>${tds}</tr>`
+      }).join('')}</tbody>`
+
+      return `
+        <div class="price-section">
+          ${secTitle ? `<div class=\"price-section-title\">${secTitle}</div>` : ''}
+          ${subtitle}
+          <div class="price-table-wrap">
+            <table class="price-table" role="table">
+              ${colgroup}
+              ${thead}
+              ${tbody}
+            </table>
+          </div>
+        </div>
+      `.trim()
+    }).join('')
+
+    container.innerHTML = `
+      <div class="price-sheet">
+        <div class="price-sheet-header">
+          <div class="price-sheet-left">${headerLeft}</div>
+          ${headerRight}
+        </div>
+        ${sectionsHtml}
+      </div>
+    `.trim()
+  }
+
+  function renderMainExtraContacts(data, container){
+    if(!data || !container) return
+    const contacts = data.contacts || {}
+
+    function telHref(phone){
+      const digits = String(phone || '').replace(/\D/g, '')
+      return digits ? `tel:${digits}` : '#'
+    }
+
+    const items = []
+    if(contacts.dispatcherPhone || contacts.dispatcherEmail){
+      const phone = contacts.dispatcherPhone
+      const email = contacts.dispatcherEmail
+      items.push(`
+        <div class="contact-line">
+          <span class="small">Диспетчер</span>
+          <div class="contact-values">
+            ${phone ? `<a href=\"${telHref(phone)}\">${escapeHtml(phone)}</a>` : ''}
+            ${email ? `<a href=\"mailto:${escapeHtml(email)}\">${escapeHtml(email)}</a>` : ''}
+          </div>
+        </div>
+      `.trim())
+    }
+
+    if(contacts.labContact || contacts.labPhone){
+      const name = contacts.labContact
+      const phone = contacts.labPhone
+      items.push(`
+        <div class="contact-line">
+          <span class="small">Лаборатория</span>
+          <div class="contact-values">
+            ${name ? `<span>${escapeHtml(name)}</span>` : ''}
+            ${phone ? `<a href=\"${telHref(phone)}\">${escapeHtml(phone)}</a>` : ''}
+          </div>
+        </div>
+      `.trim())
+    }
+
+    if(Array.isArray(contacts.additionalPhones)){
+      contacts.additionalPhones.forEach(p=>{
+        const name = p && p.name ? p.name : 'Контакт'
+        const phones = Array.isArray(p && p.phones) ? p.phones : []
+        const note = p && p.note ? p.note : ''
+        if(!phones.length && !note) return
+        items.push(`
+          <div class="contact-line">
+            <span class="small">${escapeHtml(name)}</span>
+            <div class="contact-values">
+              ${phones.map(ph=>`<a href=\"${telHref(ph)}\">${escapeHtml(ph)}</a>`).join('<span class="contact-sep">/</span>')}
+              ${note ? `<span class=\"small\">(${escapeHtml(note)})</span>` : ''}
+            </div>
+          </div>
+        `.trim())
+      })
+    }
+
+    container.innerHTML = items.join('') || ''
+  }
+
+  function renderAboutSecondaryInfo(data, container){
+    if(!data || !container) return
+    const notes = data.notes || {}
+
+    function renderList(title, items){
+      if(!Array.isArray(items) || items.length === 0) return ''
+      return `
+        <div class="about-secondary-block">
+          <div class="about-secondary-title">${escapeHtml(title)}</div>
+          <ul class="about-secondary-list">
+            ${items.map(i=>`<li>${escapeHtml(i)}</li>`).join('')}
+          </ul>
+        </div>
+      `.trim()
+    }
+
+    container.innerHTML = [
+      renderList('Оплата', notes.payment),
+      renderList('Разгрузка и простой', notes.unloading),
+      renderList('Услуги АБС', notes.mixerService),
+      renderList('Доставка (рейс)', notes.deliveryRates)
+    ].filter(Boolean).join('') || '<div class="small">Информация временно недоступна.</div>'
+  }
+
   // render global price table and update any selects
   function renderPriceTable(){
     const el = document.getElementById('priceTable'); if(!el) return
-    el.innerHTML = ''
-    appData.prices.forEach(p=>{
-      const row = document.createElement('div'); row.className='price-row'
-      row.innerHTML = `<div><div class="price-mark">${p.mark}</div><div class="small">бетон</div></div><div class="price-amount">${formatPrice(p.price)} ₽</div>`
-      el.appendChild(row)
-    })
-    // update options for all type selects
+
+    // Always keep calculator selects in sync with local editable prices
     document.querySelectorAll('.type-mark').forEach(sel=>populateMarkOptions(sel))
+
+    // Prefer a structured "sheet" from JSON; fallback to the simple local list
+    loadConcretePriceInfo().then(data=>{
+      if(data){
+        renderConcretePriceSheet(data, el)
+        return
+      }
+      el.innerHTML = ''
+      appData.prices.forEach(p=>{
+        const row = document.createElement('div'); row.className='price-row'
+        row.innerHTML = `<div><div class="price-mark">${escapeHtml(p.mark)}</div><div class="small">бетон</div></div><div class="price-amount">${formatPrice(p.price)} ₽</div>`
+        el.appendChild(row)
+      })
+    })
   }
 
   function populateMarkOptions(sel){
@@ -367,4 +583,21 @@ document.addEventListener('DOMContentLoaded', ()=>{
   // --- Init ---
   renderPriceTable()
   ensureInitialType()
+
+  // About page: secondary info from the same JSON
+  const aboutSecondary = document.getElementById('aboutSecondaryInfo')
+  if(aboutSecondary){
+    loadConcretePriceInfo().then(data=>{
+      if(data) renderAboutSecondaryInfo(data, aboutSecondary)
+      else aboutSecondary.innerHTML = '<div class="small">Информация временно недоступна.</div>'
+    })
+  }
+
+  // Main page: move dispatcher/lab contacts from price into "Контакты"
+  const mainContactsExtra = document.getElementById('mainContactsExtra')
+  if(mainContactsExtra){
+    loadConcretePriceInfo().then(data=>{
+      if(data) renderMainExtraContacts(data, mainContactsExtra)
+    })
+  }
 });

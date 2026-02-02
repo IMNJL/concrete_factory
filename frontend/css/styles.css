@@ -5,7 +5,7 @@
   --accent-color: #00A4EF; /* Lighter blue */
   --background-color: #F3F9FF; /* Light background */
   --text-color: #333333; /* Neutral text */
-  --container-max: 1100px;
+  --container-max: 1240px;
   --header-offset: 175px;
   --card: #ffffff;
   --muted: #5b6777;
@@ -97,6 +97,9 @@ header.site-header {
   align-items: center;
   padding: 10px 20px 12px;
   column-gap: 18px;
+  width: 100%;
+  max-width: var(--container-max);
+  margin: 0 auto;
 }
 
 .header-slogan {
@@ -110,12 +113,12 @@ header.site-header {
 }
 
 .header-slogan-title {
-  font-size: 26px;
+  font-size: clamp(15px, 1.8vw, 26px);
   color: rgb(85, 0, 119);
 }
 
 .header-slogan-sub {
-  font-size: 24px;
+  font-size: clamp(13px, 1.6vw, 24px);
   opacity: 0.95;
   color: rgb(85, 0, 119);
 }
@@ -131,7 +134,7 @@ header.site-header {
   color: #0b2a2a;
   text-decoration: none;
   font-weight: 900;
-  font-size: 28px;
+  font-size: clamp(18px, 2.6vw, 30px);
   letter-spacing: 0.2px;
 }
 
@@ -143,7 +146,7 @@ header.site-header {
 .header-city {
   color: rgba(11, 42, 42, 0.85);
   font-weight: 700;
-  font-size: 25px;
+  font-size: clamp(13px, 1.8vw, 22px);
 }
 
 .header-messengers {
@@ -191,7 +194,7 @@ header.site-header {
 }
 
 .logo img {
-  height: 110px;
+  height: clamp(72px, 8vw, 110px);
   width: auto;
 }
 
@@ -203,16 +206,23 @@ header.site-header {
   padding: 12px 20px;
   background: rgba(13, 17, 23, 0.7);
   backdrop-filter: blur(6px);
+  width: 100%;
+  max-width: var(--container-max);
+  margin: 0 auto;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .header-nav a {
   color: #ffffff;
   text-decoration: none;
   margin-left: 0;
-  font-size: 20px;
+  font-size: clamp(15px, 1.6vw, 20px);
   font-weight: 700;
   opacity: 0.92;
   transition: opacity 0.15s ease, text-decoration-color 0.15s ease;
+  white-space: nowrap;
+  flex: 0 0 auto;
 }
 
 .header-nav a:hover {
@@ -224,9 +234,9 @@ header.site-header {
 
 /* Hero section styles */
 .hero {
-  padding: 28px 20px;
+  padding: 24px 20px;
   display: grid;
-  grid-template-columns: 1fr 380px;
+  grid-template-columns: 1fr minmax(280px, 360px);
   gap: 24px;
   align-items: start;
   margin-top: 0;
@@ -289,6 +299,186 @@ h1 {
   font-weight: 700;
 }
 
+/* New "sheet" price (JSON-driven) */
+.price-sheet {
+  background: #fff;
+  border: 1px solid rgba(17, 24, 39, 0.10);
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.price-sheet-header {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(17, 24, 39, 0.10);
+  margin-bottom: 12px;
+}
+
+.price-sheet-title {
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 0.2px;
+}
+
+.price-sheet-date {
+  font-weight: 800;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.price-sheet-note {
+  margin-top: 6px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.price-sheet-right {
+  text-align: right;
+  display: grid;
+  gap: 6px;
+}
+
+.price-sheet-contact a {
+  display: inline-block;
+  font-weight: 900;
+  color: var(--accent-dark);
+  text-decoration: none;
+}
+
+.price-sheet-site {
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.price-section {
+  margin-top: 12px;
+}
+
+.price-section-title {
+  font-weight: 900;
+  font-size: 16px;
+  margin: 0 0 6px;
+}
+
+.price-section-subtitle {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.price-table-wrap {
+  overflow-x: auto;
+  border: 1px solid rgba(17, 24, 39, 0.10);
+  border-radius: 10px;
+}
+
+.price-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 520px;
+  background: #fff;
+}
+
+.price-table th,
+.price-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(17, 24, 39, 0.08);
+  border-right: 1px solid rgba(17, 24, 39, 0.08);
+  vertical-align: middle;
+}
+
+.price-table th:last-child,
+.price-table td:last-child {
+  border-right: none;
+}
+
+.price-table th {
+  background: linear-gradient(180deg, rgba(0, 164, 239, 0.10), rgba(0, 120, 215, 0.05));
+  font-weight: 900;
+  color: #0b2b49;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.price-table tbody tr:nth-child(even) {
+  background: rgba(17, 24, 39, 0.02);
+}
+
+.price-table tbody tr:hover {
+  background: rgba(0, 120, 215, 0.06);
+}
+
+.price-cell {
+  font-weight: 900;
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* About page secondary info */
+.about-secondary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 14px;
+}
+
+.about-secondary-block {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(17, 24, 39, 0.10);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.about-secondary-title {
+  font-weight: 900;
+  margin-bottom: 6px;
+}
+
+.about-secondary-list {
+  margin: 0 0 0 18px;
+  line-height: 1.6;
+}
+
+@media (max-width: 820px) {
+  .about-secondary-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Main Contacts extra lines (from JSON) */
+.contact-line {
+  padding-top: 10px;
+  margin-top: 10px;
+  border-top: 1px dashed rgba(17, 24, 39, 0.12);
+}
+
+.contact-values {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: baseline;
+  margin-top: 4px;
+  font-weight: 800;
+}
+
+.contact-values a {
+  color: var(--accent-dark);
+  text-decoration: none;
+}
+
+.contact-values a:hover {
+  text-decoration: underline;
+}
+
+.contact-sep {
+  color: var(--muted);
+  font-weight: 700;
+}
+
 /* Calculator styles */
 label {
   display: block;
@@ -327,7 +517,7 @@ textarea:focus {
 
 /* Layout sections */
 main {
-  max-width: 1100px;
+  max-width: var(--container-max);
   margin: 18px auto;
   padding: 0 20px;
   padding-top: var(--header-offset);
@@ -364,14 +554,20 @@ footer {
 @media (max-width: 900px) {
   .hero {
     grid-template-columns: 1fr;
+    padding: 16px 14px;
+    gap: 14px;
   }
 
   .grid-3 {
     grid-template-columns: 1fr;
   }
 
-  .header-nav a {
-    display: none;
+  :root {
+    --header-offset: 220px;
+  }
+
+  header.site-header {
+    padding-top: 8px;
   }
 
   .logo {
@@ -382,6 +578,7 @@ footer {
     grid-template-columns: 1fr;
     row-gap: 10px;
     justify-items: start;
+    padding: 10px 14px 10px;
   }
 
   .header-slogan {
@@ -392,11 +589,44 @@ footer {
   .header-contact-block {
     align-items: flex-start;
   }
+
+  .header-nav {
+    padding: 10px 14px;
+    gap: 14px;
+  }
+
+  .card {
+    padding: 14px;
+    border-radius: 12px;
+  }
+
+  main {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
 }
 
 @media (max-width: 820px) {
   .hero {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --header-offset: 240px;
+  }
+
+  .logo img {
+    height: 70px;
+  }
+
+  h1 {
+    font-size: 22px;
+  }
+
+  .calc-result {
+    font-size: 18px;
   }
 }
 
