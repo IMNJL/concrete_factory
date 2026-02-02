@@ -40,9 +40,16 @@ jobs:
           cp -R assets/* dist/assets/
 
       - name: Configure Pages
+        id: configure_pages
         uses: actions/configure-pages@v5
-        with:
-          enablement: true
+        continue-on-error: true
+
+      - name: Hint (enable Pages)
+        if: steps.configure_pages.outcome != 'success'
+        run: |
+          echo "GitHub Pages is not enabled or Actions lacks permission to access it."
+          echo "Enable it in: Settings -> Pages -> Source: GitHub Actions."
+          echo "Also check: Settings -> Actions -> General -> Workflow permissions -> Read and write permissions."
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
