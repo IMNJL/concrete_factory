@@ -83,32 +83,16 @@ document.addEventListener('DOMContentLoaded', ()=>{
       const cols = Array.isArray(sec.columns) ? sec.columns : []
       const rows = Array.isArray(sec.rows) ? sec.rows : []
 
-      const colKeys = cols.map(c=>c && c.key).filter(Boolean)
-      const isFiveColPrice = cols.length === 5 && colKeys.includes('price') && colKeys.includes('priceVat')
-      const isThreeColPrice = cols.length === 3 && colKeys.includes('price') && colKeys.includes('priceVat')
-      const colgroup = (isFiveColPrice || isThreeColPrice)
-        ? (()=>{
-            if(isFiveColPrice){
-              // First three columns (Марка/Класс/F) together ~1/3 width
-              return `<colgroup>
-                <col style=\"width:11.11%\">
-                <col style=\"width:11.11%\">
-                <col style=\"width:11.11%\">
-                <col style=\"width:33.33%\">
-                <col style=\"width:33.33%\">
-              </colgroup>`
-            }
-            // 3-col tables: keep first column about 1/3
-            return `<colgroup>
-              <col style=\"width:33.33%\">
-              <col style=\"width:33.33%\">
-              <col style=\"width:33.33%\">
-            </colgroup>`
-          })()
-        : ''
+      // Do not force percentage widths — keep the table compact so prices stay close to the left.
+      const colgroup = ''
 
       const thead = cols.length
-        ? `<thead><tr>${cols.map(c=>`<th>${escapeHtml(c.label || c.key || '')}</th>`).join('')}</tr></thead>`
+        ? `<thead><tr>${cols.map(c=>{
+            const key = c && c.key
+            const isPrice = key === 'price' || key === 'priceVat'
+            const cls = isPrice ? ' class="price-head"' : ''
+            return `<th${cls}>${escapeHtml(c.label || c.key || '')}</th>`
+          }).join('')}</tr></thead>`
         : ''
 
       const tbody = `<tbody>${rows.map(r=>{

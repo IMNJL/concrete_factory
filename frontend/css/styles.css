@@ -375,23 +375,38 @@ h1 {
 
 .price-table-wrap {
   overflow-x: auto;
+  overflow-y: hidden;
   border: 1px solid rgba(17, 24, 39, 0.10);
-  border-radius: 10px;
+  border-radius: 14px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.75);
+  box-shadow: 0 10px 26px rgba(16, 24, 40, 0.08);
 }
 
 .price-table {
-  width: 100%;
-  border-collapse: collapse;
-  min-width: 520px;
+  width: max-content;
+  display: inline-table;
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 0;
   background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
 }
 
 .price-table th,
 .price-table td {
-  padding: 10px 12px;
+  padding: 10px 10px;
   border-bottom: 1px solid rgba(17, 24, 39, 0.08);
   border-right: 1px solid rgba(17, 24, 39, 0.08);
   vertical-align: middle;
+}
+
+.price-table th.price-head,
+.price-table td.price-cell {
+  padding-left: 6px;
+  padding-right: 6px;
+  text-align: right;
 }
 
 .price-table th:last-child,

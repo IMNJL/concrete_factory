@@ -25,38 +25,36 @@
       "type": "table",
       "title": "Товарный бетон",
       "columns": [
-        { "key": "name", "label": "Марка бетона" },
         { "key": "mark", "label": "Класс" },
         { "key": "frost", "label": "F" },
         { "key": "price", "label": "Цена" },
         { "key": "priceVat", "label": "с НДС" }
       ],
       "rows": [
-        { "name": "Бетон", "mark": "B 7,5", "frost": "100", "price": 4000, "priceVat": 4150 },
-        { "name": "Бетон", "mark": "B 10", "frost": "150", "price": 4200, "priceVat": 4350 },
-        { "name": "Бетон", "mark": "B 15", "frost": "200", "price": 4750, "priceVat": 4900 },
-        { "name": "Бетон", "mark": "B 20", "frost": "250", "price": 5100, "priceVat": 5250 },
-        { "name": "Бетон", "mark": "B 22,5", "frost": "300", "price": 5400, "priceVat": 5550 },
-        { "name": "Бетон", "mark": "B 25", "frost": "350", "price": 5600, "priceVat": 5750 },
-        { "name": "Бетон", "mark": "B 30", "frost": "400", "price": 6100, "priceVat": 6250 },
-        { "name": "Бетон", "mark": "B 35", "frost": "450", "price": 6650, "priceVat": 6800 },
-        { "name": "Бетон", "mark": "B 40", "frost": "550", "price": 7450, "priceVat": 7600 }
+        { "mark": "B 7,5", "frost": "100", "price": 4000, "priceVat": 4150 },
+        { "mark": "B 10", "frost": "150", "price": 4200, "priceVat": 4350 },
+        { "mark": "B 15", "frost": "200", "price": 4750, "priceVat": 4900 },
+        { "mark": "B 20", "frost": "250", "price": 5100, "priceVat": 5250 },
+        { "mark": "B 22,5", "frost": "300", "price": 5400, "priceVat": 5550 },
+        { "mark": "B 25", "frost": "350", "price": 5600, "priceVat": 5750 },
+        { "mark": "B 30", "frost": "400", "price": 6100, "priceVat": 6250 },
+        { "mark": "B 35", "frost": "450", "price": 6650, "priceVat": 6800 },
+        { "mark": "B 40", "frost": "550", "price": 7450, "priceVat": 7600 }
       ]
     },
     {
       "type": "table",
       "title": "Мелкозернистый бетон",
       "columns": [
-        { "key": "name", "label": "Марка" },
         { "key": "mark", "label": "Класс" },
         { "key": "frost", "label": "F" },
         { "key": "price", "label": "Цена" },
         { "key": "priceVat", "label": "с НДС" }
       ],
       "rows": [
-        { "name": "МЗБ", "mark": "B 7,5", "frost": "100", "price": 4300, "priceVat": 4500 },
-        { "name": "МЗБ", "mark": "B 10", "frost": "150", "price": 4600, "priceVat": 4900 },
-        { "name": "МЗБ", "mark": "B 15", "frost": "200", "price": 5000, "priceVat": 5200 }
+        { "mark": "B 7,5", "frost": "100", "price": 4300, "priceVat": 4500 },
+        { "mark": "B 10", "frost": "150", "price": 4600, "priceVat": 4900 },
+        { "mark": "B 15", "frost": "200", "price": 5000, "priceVat": 5200 }
       ]
     },
     {
