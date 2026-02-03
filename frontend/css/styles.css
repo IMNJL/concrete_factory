@@ -522,6 +522,12 @@ textarea:focus {
   box-shadow: 0 0 0 4px var(--ring);
 }
 
+.is-invalid {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.18) !important;
+  background: rgba(239, 68, 68, 0.04);
+}
+
 .calc-result {
   font-size: 20px;
   font-weight: 800;
