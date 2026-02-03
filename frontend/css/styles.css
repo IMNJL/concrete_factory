@@ -664,14 +664,17 @@ footer {
   }
 
   .header-contact-block {
-    flex-direction: row;
-    align-items: center;
-    gap: 8px;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
   }
 
   .header-phone {
     font-size: 16px;
     letter-spacing: 0;
+    white-space: nowrap;
+    line-height: 1;
+    display: block;
   }
 
   .header-city {
@@ -680,6 +683,7 @@ footer {
 
   .header-messengers {
     gap: 6px;
+    justify-content: flex-end;
   }
 
   .messenger {
@@ -713,6 +717,7 @@ footer {
 
   .header-phone {
     font-size: 15px;
+    white-space: nowrap;
   }
 }
 
