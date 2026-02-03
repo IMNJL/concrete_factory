@@ -15,7 +15,7 @@
 
 @font-face {
   font-family: 'Manrope';
-  src: url('/assets/fonts/Manrope/static/Manrope-Regular.ttf') format('truetype');
+  src: url('../assets/fonts/Manrope/static/Manrope-Regular.ttf') format('truetype');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -23,7 +23,7 @@
 
 @font-face {
   font-family: 'Manrope';
-  src: url('/assets/fonts/Manrope/static/Manrope-Medium.ttf') format('truetype');
+  src: url('../assets/fonts/Manrope/static/Manrope-Medium.ttf') format('truetype');
   font-weight: 500;
   font-style: normal;
   font-display: swap;
@@ -31,7 +31,7 @@
 
 @font-face {
   font-family: 'Manrope';
-  src: url('/assets/fonts/Manrope/static/Manrope-SemiBold.ttf') format('truetype');
+  src: url('../assets/fonts/Manrope/static/Manrope-SemiBold.ttf') format('truetype');
   font-weight: 600;
   font-style: normal;
   font-display: swap;
@@ -39,7 +39,7 @@
 
 @font-face {
   font-family: 'Manrope';
-  src: url('/assets/fonts/Manrope/static/Manrope-Bold.ttf') format('truetype');
+  src: url('../assets/fonts/Manrope/static/Manrope-Bold.ttf') format('truetype');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
@@ -47,7 +47,7 @@
 
 @font-face {
   font-family: 'Manrope';
-  src: url('/assets/fonts/Manrope/static/Manrope-ExtraBold.ttf') format('truetype');
+  src: url('../assets/fonts/Manrope/static/Manrope-ExtraBold.ttf') format('truetype');
   font-weight: 800;
   font-style: normal;
   font-display: swap;
@@ -76,7 +76,7 @@ html {
 
 /* Header styles */
 header.site-header {
-  background-image: url('assets/documents/background.jpg');
+  background-image: url('../assets/documents/background.jpg');
   background-size: cover;
   background-position: center;
   color: white;
@@ -614,7 +614,7 @@ footer {
 
 @media (max-width: 480px) {
   :root {
-    --header-offset: 240px;
+    --header-offset: 132px;
   }
 
   .logo img {
@@ -627,6 +627,92 @@ footer {
 
   .calc-result {
     font-size: 18px;
+  }
+}
+
+/* Phone header compact mode: keep everything in one row */
+@media (max-width: 520px) {
+  :root {
+    --header-offset: 140px;
+  }
+
+  header.site-header {
+    padding-top: 6px;
+  }
+
+  .header-top {
+    grid-template-columns: auto 1fr auto;
+    row-gap: 0;
+    column-gap: 10px;
+    align-items: center;
+    padding: 6px 10px 8px;
+    justify-items: stretch;
+  }
+
+  .logo {
+    margin-left: 0;
+    gap: 8px;
+  }
+
+  .logo img {
+    height: 52px;
+  }
+
+  /* Hide slogan on phones to prevent header growth */
+  .header-slogan {
+    display: none;
+  }
+
+  .header-contact-block {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .header-phone {
+    font-size: 16px;
+    letter-spacing: 0;
+  }
+
+  .header-city {
+    display: none;
+  }
+
+  .header-messengers {
+    gap: 6px;
+  }
+
+  .messenger {
+    width: 26px;
+    height: 26px;
+  }
+
+  .messenger img {
+    width: 18px;
+    height: 18px;
+  }
+
+  .header-nav {
+    padding: 8px 10px;
+    gap: 10px;
+  }
+
+  .header-nav a {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --header-offset: 132px;
+  }
+
+  .logo img {
+    height: 48px;
+  }
+
+  .header-phone {
+    font-size: 15px;
   }
 }
 
