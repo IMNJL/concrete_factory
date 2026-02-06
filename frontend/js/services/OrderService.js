@@ -3,6 +3,23 @@ export class OrderService {
     this.apiUrl = apiUrl;
   }
 
+  static getApiBaseUrl() {
+    try {
+      const cfg = (window && window.__APP_CONFIG__) ? window.__APP_CONFIG__ : null;
+      const raw = cfg && typeof cfg.apiBaseUrl === 'string' ? cfg.apiBaseUrl : '';
+      return String(raw || '').trim().replace(/\/+$/, '');
+    } catch (_) {
+      return '';
+    }
+  }
+
+  static apiUrl(path) {
+    const base = OrderService.getApiBaseUrl();
+    const p = String(path || '');
+    if (!base) return p;
+    return base + (p.startsWith('/') ? p : `/${p}`);
+  }
+
   async fetchPrices() {
     try {
       const response = await fetch(`${this.apiUrl}/api/prices`);
@@ -53,7 +70,7 @@ export class OrderService {
   }
 
   static async submitOrder(order) {
-    const response = await fetch('/api/order', {
+    const response = await fetch(OrderService.apiUrl('/api/order'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(order),

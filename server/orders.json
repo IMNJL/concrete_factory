@@ -893,5 +893,57 @@
         "buyerEmail": "kgrigor2019@yandex.ru"
       }
     }
+  },
+  {
+    "receivedAt": "2026-02-06T10:05:14.523Z",
+    "body": {
+      "markdown": "| № | Тип | Класс/марка | Объём (м³) | Цена/м³ | Стоимость |\n|---:|---|---|---:|---:|---:|\n| 1 | Товарный бетон | B 7,5 (F100) | 1 | 4 150 ₽ | 4 150 ₽ |\n\n**Материал:** 4 150 ₽\n**Доставка (5 км):** 1 750 ₽\n**Итог:** 5 900 ₽\n\n**Покупатель:** dskjadaskljaksdjkjdaskja\n**Телефон:** 880053535353\n**Email:** kgrigor2019@yandex.ru",
+      "order": {
+        "details": [
+          {
+            "type": "Товарный бетон",
+            "mark": "B 7,5",
+            "frost": "100",
+            "label": "B 7,5 (F100) — 4 150 ₽/м³",
+            "vol": 1,
+            "price": 4150,
+            "cost": 4150
+          }
+        ],
+        "materialTotal": 4150,
+        "delivery": 1750,
+        "total": 5900,
+        "km": 5,
+        "buyerName": "dskjadaskljaksdjkjdaskja",
+        "buyerPhone": "880053535353",
+        "buyerEmail": "kgrigor2019@yandex.ru"
+      }
+    }
+  },
+  {
+    "receivedAt": "2026-02-06T11:35:05.955Z",
+    "body": {
+      "markdown": "| № | Тип | Класс/марка | Объём (м³) | Цена/м³ | Стоимость |\n|---:|---|---|---:|---:|---:|\n| 1 | Товарный бетон | B 7,5 (F100) | 1 | 4 150 ₽ | 4 150 ₽ |\n\n**Материал:** 4 150 ₽\n**Доставка (5 км):** 1 750 ₽\n**Итог:** 5 900 ₽\n\n**Покупатель:** dskjadaskljaksdjkjdaskja\n**Телефон:** 880053535353\n**Email:** kgrigor2019@yandex.ru",
+      "order": {
+        "details": [
+          {
+            "type": "Товарный бетон",
+            "mark": "B 7,5",
+            "frost": "100",
+            "label": "B 7,5 (F100) — 4 150 ₽/м³",
+            "vol": 1,
+            "price": 4150,
+            "cost": 4150
+          }
+        ],
+        "materialTotal": 4150,
+        "delivery": 1750,
+        "total": 5900,
+        "km": 5,
+        "buyerName": "dskjadaskljaksdjkjdaskja",
+        "buyerPhone": "880053535353",
+        "buyerEmail": "kgrigor2019@yandex.ru"
+      }
+    }
   }
 ]

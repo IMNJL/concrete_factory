@@ -21,6 +21,25 @@ for (const p of envCandidates) {
 const app = express()
 const PORT = parseInt(process.env.PORT || '3002', 10)
 
+// Allow browser requests from GitHub Pages (or any other frontend).
+// If you call this API from a different origin (e.g. GitHub Pages), the browser will block requests
+// unless CORS headers are present.
+const CORS_ORIGIN = String(process.env.CORS_ORIGIN || '').trim()
+
+app.use((req, res, next) => {
+  // If CORS_ORIGIN is not set, default to '*' for simplicity (no cookies are used).
+  const origin = CORS_ORIGIN || '*'
+  res.setHeader('Access-Control-Allow-Origin', origin)
+  res.setHeader('Vary', 'Origin')
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+
+  if (req.method === 'OPTIONS') {
+    return res.status(204).end()
+  }
+  next()
+})
+
 app.use(express.json({ limit: '1mb' }))
 app.use(express.urlencoded({ extended: false }))
 

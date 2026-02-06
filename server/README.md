@@ -52,6 +52,18 @@ npm run dev
 
 Если открыть `frontend/index.html` двойным кликом (через `file://`), письма отправляться не будут — нужен запущенный сервер.
 
+## GitHub Pages (важно)
+
+GitHub Pages — это статический хостинг. Он не запускает Node.js и не может безопасно хранить/использовать секреты во время работы сайта.
+Чтобы отправка писем работала с сайта на GitHub Pages, нужно:
+
+1) Задеплоить этот сервер (`server/`) на любой хостинг (Render/Railway/Fly/VPS и т.п.) — домен не нужен, дадут URL вида `https://xxx.onrender.com`.
+2) На хостинге сервера задать переменные окружения (`RESEND_API_KEY`, `TO_EMAIL`, `FROM_EMAIL`, и т.д.).
+3) Разрешить CORS на сервере для домена Pages (переменная `CORS_ORIGIN`, например `https://imnjl.github.io`).
+4) На Pages указать публичный URL сервера в [frontend/config.js](frontend/config.js) как `apiBaseUrl` (это НЕ секрет).
+
+Важно: GitHub Secrets доступны только в GitHub Actions (во время CI/CD). Код, который выполняется в браузере на GitHub Pages, эти секреты прочитать не может.
+
 ## Проверка отправки
 
 - Статус и диагностика: `GET /api/email/status`

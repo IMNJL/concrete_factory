@@ -1,6 +1,13 @@
 import { PriceTable } from './ui/PriceTable.js';
 
-const apiUrl = 'http://localhost:3002';
+function getApiBaseUrl(){
+  const cfg = (window && window.__APP_CONFIG__) ? window.__APP_CONFIG__ : null
+  const raw = cfg && typeof cfg.apiBaseUrl === 'string' ? cfg.apiBaseUrl : ''
+  const trimmed = String(raw || '').trim()
+  return trimmed.replace(/\/+$/,'')
+}
+
+const apiUrl = getApiBaseUrl();
 const priceTableContainer = document.getElementById('price-table');
 
 new PriceTable(priceTableContainer, apiUrl);
