@@ -24,19 +24,59 @@ const PORT = parseInt(process.env.PORT || '3002', 10)
 // Allow browser requests from GitHub Pages (or any other frontend).
 // If you call this API from a different origin (e.g. GitHub Pages), the browser will block requests
 // unless CORS headers are present.
-const CORS_ORIGIN = String(process.env.CORS_ORIGIN || '').trim()
+const CORS_ORIGIN_RAW = String(process.env.CORS_ORIGIN || '')
+
+function normalizeOrigin(input) {
+  const s = String(input || '')
+    .replace(/[\r\n]+/g, '')
+    .trim()
+    .replace(/^['"]|['"]$/g, '')
+
+  if (!s) return ''
+  if (s === '*') return '*'
+
+  // Accept values like:
+  // - https://imnjl.github.io
+  // - https://imnjl.github.io/concrete_factory
+  // - https://imnjl.github.io/
+  try {
+    const u = new URL(s)
+    return u.origin
+  } catch (_) {
+    // Not a full URL; best-effort strip trailing slash
+    return s.replace(/\/+$/, '')
+  }
+}
+
+const ALLOWED_ORIGINS = CORS_ORIGIN_RAW
+  .split(',')
+  .map(normalizeOrigin)
+  .filter(Boolean)
+
+function resolveCorsAllowOrigin(requestOrigin) {
+  const reqOrigin = normalizeOrigin(requestOrigin)
+  if (!reqOrigin) {
+    // No Origin header (curl/server-to-server) — allow.
+    return ALLOWED_ORIGINS[0] || '*'
+  }
+
+  if (ALLOWED_ORIGINS.length === 0) return '*'
+  if (ALLOWED_ORIGINS.includes('*')) return '*'
+  if (ALLOWED_ORIGINS.includes(reqOrigin)) return reqOrigin
+  return ''
+}
 
 app.use((req, res, next) => {
-  // If CORS_ORIGIN is not set, default to '*' for simplicity (no cookies are used).
-  const origin = CORS_ORIGIN || '*'
-  res.setHeader('Access-Control-Allow-Origin', origin)
-  res.setHeader('Vary', 'Origin')
+  const allowOrigin = resolveCorsAllowOrigin(req.headers.origin)
+  if (allowOrigin) {
+    res.setHeader('Access-Control-Allow-Origin', allowOrigin)
+    res.setHeader('Vary', 'Origin')
+  }
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+  res.setHeader('Access-Control-Max-Age', '86400')
 
-  if (req.method === 'OPTIONS') {
-    return res.status(204).end()
-  }
+  if (req.method === 'OPTIONS') return res.status(204).end()
   next()
 })
 

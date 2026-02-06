@@ -29,15 +29,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
     const cfg = (window && window.__APP_CONFIG__) ? window.__APP_CONFIG__ : null
     const raw = cfg && typeof cfg.apiBaseUrl === 'string' ? cfg.apiBaseUrl : ''
     const trimmed = String(raw || '').trim()
-    const base = trimmed.replace(/\/+$/,'')
-    if(base) return base
-
-    // Fallback for GitHub Pages in case config.js is missing/cached incorrectly.
-    const host = (window && window.location && window.location.hostname)
-      ? String(window.location.hostname).toLowerCase()
-      : ''
-    if(host && host.endsWith('github.io')) return 'https://concrete-factory.onrender.com'
-    return ''
+    return trimmed.replace(/\/+$/,'')
   }
 
   function apiUrl(p){
@@ -587,34 +579,134 @@ document.addEventListener('DOMContentLoaded', ()=>{
   const volumeCalcBtn = document.getElementById('volumeCalcBtn')
   const volumeClearBtn = document.getElementById('volumeClearBtn')
   const volumeResult = document.getElementById('volumeResult')
+  const foundationType = document.getElementById('foundationType')
+  const foundationTabs = Array.from(document.querySelectorAll('.foundation-tab'))
+  const foundationFormula = document.getElementById('foundationFormula')
+
+  const foundationFieldsStrip = document.getElementById('foundationFieldsStrip')
+  const foundationFieldsSlab = document.getElementById('foundationFieldsSlab')
+  const foundationFieldsPiles = document.getElementById('foundationFieldsPiles')
+
   const foundationLength = document.getElementById('foundationLength')
   const foundationWidth = document.getElementById('foundationWidth')
   const foundationHeight = document.getElementById('foundationHeight')
+
+  const slabArea = document.getElementById('slabArea')
+  const slabThickness = document.getElementById('slabThickness')
+  const pileRadius = document.getElementById('pileRadius')
+  const pileHeight = document.getElementById('pileHeight')
 
   function parseNum(val){
     if(val==null) return NaN
     return parseFloat(String(val).replace(',', '.'))
   }
 
-  if(volumeCalcBtn && volumeResult && foundationLength && foundationWidth && foundationHeight){
+  function setVisible(el, visible){
+    if(!el) return
+    el.style.display = visible ? '' : 'none'
+  }
+
+  function clearInvalidFoundationInputs(){
+    ;[foundationLength, foundationWidth, foundationHeight, slabArea, slabThickness, pileRadius, pileHeight]
+      .filter(Boolean)
+      .forEach(inp=> inp.classList.remove('is-invalid'))
+  }
+
+  function getFoundationKind(){
+    const raw = foundationType ? String(foundationType.value || '').trim() : 'strip'
+    if(raw === 'strip' || raw === 'slab' || raw === 'piles') return raw
+    return 'strip'
+  }
+
+  function setFoundationKind(kind){
+    const k = (kind === 'strip' || kind === 'slab' || kind === 'piles') ? kind : 'strip'
+    if(foundationType) foundationType.value = k
+
+    // tabs
+    foundationTabs.forEach(btn=>{
+      const isActive = String(btn.dataset.kind || '') === k
+      btn.classList.toggle('is-active', isActive)
+      btn.setAttribute('aria-selected', isActive ? 'true' : 'false')
+      btn.tabIndex = isActive ? 0 : -1
+    })
+
+    // panels
+    setVisible(foundationFieldsStrip, k === 'strip')
+    setVisible(foundationFieldsSlab, k === 'slab')
+    setVisible(foundationFieldsPiles, k === 'piles')
+
+    if(foundationFormula){
+      if(k === 'strip') foundationFormula.textContent = 'Формула: V = L × W × H (в метрах).'
+      else if(k === 'slab') foundationFormula.textContent = 'Формула: V = S × h (S — площадь плиты, h — толщина плиты).'
+      else foundationFormula.textContent = 'Формула: V = π × r² × h (π = 3,14; r — радиус; h — глубина/высота сваи).'
+    }
+
+    clearInvalidFoundationInputs()
+    if(volumeResult) volumeResult.textContent = '—'
+  }
+
+  // hook tabs
+  if(foundationTabs.length){
+    foundationTabs.forEach(btn=>{
+      btn.addEventListener('click', ()=> setFoundationKind(String(btn.dataset.kind || 'strip')))
+    })
+  }
+
+  // init
+  setFoundationKind(getFoundationKind())
+
+  if(volumeCalcBtn && volumeResult){
     volumeCalcBtn.addEventListener('click', ()=>{
-      const l = parseNum(foundationLength.value)
-      const w = parseNum(foundationWidth.value)
-      const h = parseNum(foundationHeight.value)
+      clearInvalidFoundationInputs()
+      const kind = getFoundationKind()
 
-      const invalidL = (!isFinite(l) || l <= 0)
-      const invalidW = (!isFinite(w) || w <= 0)
-      const invalidH = (!isFinite(h) || h <= 0)
+      if(kind === 'strip'){
+        if(!foundationLength || !foundationWidth || !foundationHeight){ volumeResult.textContent = '—'; return }
+        const l = parseNum(foundationLength.value)
+        const w = parseNum(foundationWidth.value)
+        const h = parseNum(foundationHeight.value)
 
-      foundationLength.classList.toggle('is-invalid', invalidL)
-      foundationWidth.classList.toggle('is-invalid', invalidW)
-      foundationHeight.classList.toggle('is-invalid', invalidH)
+        const invalidL = (!isFinite(l) || l <= 0)
+        const invalidW = (!isFinite(w) || w <= 0)
+        const invalidH = (!isFinite(h) || h <= 0)
 
-      if(invalidL || invalidW || invalidH){
-        volumeResult.textContent = '—'
+        foundationLength.classList.toggle('is-invalid', invalidL)
+        foundationWidth.classList.toggle('is-invalid', invalidW)
+        foundationHeight.classList.toggle('is-invalid', invalidH)
+
+        if(invalidL || invalidW || invalidH){ volumeResult.textContent = '—'; return }
+        const v = l*w*h
+        const vStr = (Math.round(v*1000)/1000).toString().replace('.', ',')
+        volumeResult.textContent = `Объём: ${vStr} м³`
         return
       }
-      const v = l*w*h
+
+      if(kind === 'slab'){
+        if(!slabArea || !slabThickness){ volumeResult.textContent = '—'; return }
+        const s = parseNum(slabArea.value)
+        const h = parseNum(slabThickness.value)
+        const invalidS = (!isFinite(s) || s <= 0)
+        const invalidH = (!isFinite(h) || h <= 0)
+        slabArea.classList.toggle('is-invalid', invalidS)
+        slabThickness.classList.toggle('is-invalid', invalidH)
+        if(invalidS || invalidH){ volumeResult.textContent = '—'; return }
+        const v = s*h
+        const vStr = (Math.round(v*1000)/1000).toString().replace('.', ',')
+        volumeResult.textContent = `Объём: ${vStr} м³`
+        return
+      }
+
+      // piles
+      if(!pileRadius || !pileHeight){ volumeResult.textContent = '—'; return }
+      const r = parseNum(pileRadius.value)
+      const h = parseNum(pileHeight.value)
+      const invalidR = (!isFinite(r) || r <= 0)
+      const invalidH = (!isFinite(h) || h <= 0)
+      pileRadius.classList.toggle('is-invalid', invalidR)
+      pileHeight.classList.toggle('is-invalid', invalidH)
+      if(invalidR || invalidH){ volumeResult.textContent = '—'; return }
+      const pi = 3.14
+      const v = pi * r * r * h
       const vStr = (Math.round(v*1000)/1000).toString().replace('.', ',')
       volumeResult.textContent = `Объём: ${vStr} м³`
     })
@@ -622,14 +714,9 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
   if(volumeClearBtn && volumeResult){
     volumeClearBtn.addEventListener('click', ()=>{
-      if(foundationLength) foundationLength.value = ''
-      if(foundationWidth) foundationWidth.value = ''
-      if(foundationHeight) foundationHeight.value = ''
-
-      if(foundationLength) foundationLength.classList.remove('is-invalid')
-      if(foundationWidth) foundationWidth.classList.remove('is-invalid')
-      if(foundationHeight) foundationHeight.classList.remove('is-invalid')
-
+      ;[foundationLength, foundationWidth, foundationHeight, slabArea, slabThickness, pileRadius, pileHeight]
+        .filter(Boolean)
+        .forEach(inp=>{ inp.value = ''; inp.classList.remove('is-invalid') })
       volumeResult.textContent = '—'
     })
   }

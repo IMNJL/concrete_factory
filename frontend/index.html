@@ -86,8 +86,53 @@
     </section>
 
     <section id="calculator" class="card">
-      <h2>Калькулятор стоимости</h2>
+      <h2>Калькулятор объёма фундамента</h2>
       <div style="max-width:860px">
+        <div class="foundation-tabs-label">Тип фундамента</div>
+        <div class="foundation-tabs" role="tablist" aria-label="Тип фундамента">
+          <button type="button" class="foundation-tab is-active" data-kind="strip" role="tab" aria-selected="true" aria-controls="foundationFieldsStrip">Ленточный</button>
+          <button type="button" class="foundation-tab" data-kind="slab" role="tab" aria-selected="false" aria-controls="foundationFieldsSlab">Плиточный</button>
+          <button type="button" class="foundation-tab" data-kind="piles" role="tab" aria-selected="false" aria-controls="foundationFieldsPiles">Сваи</button>
+        </div>
+        <input id="foundationType" type="hidden" value="strip">
+
+        <div id="foundationFormula" class="small">Формула: V = L × W × H (в метрах).</div>
+
+        <div id="foundationFieldsStrip">
+          <label for="foundationLength">Длина (м)</label>
+          <input id="foundationLength" type="number" min="0" step="0.01" placeholder="например: 10" inputmode="decimal">
+
+          <label for="foundationWidth">Ширина (м)</label>
+          <input id="foundationWidth" type="number" min="0" step="0.01" placeholder="например: 8" inputmode="decimal">
+
+          <label for="foundationHeight">Высота (м)</label>
+          <input id="foundationHeight" type="number" min="0" step="0.01" placeholder="например: 0.6" inputmode="decimal">
+        </div>
+
+        <div id="foundationFieldsSlab" style="display:none">
+          <label for="slabArea">Площадь плиты S (м²)</label>
+          <input id="slabArea" type="number" min="0" step="0.01" placeholder="например: 80" inputmode="decimal">
+
+          <label for="slabThickness">Толщина плиты h (м)</label>
+          <input id="slabThickness" type="number" min="0" step="0.01" placeholder="например: 0.2" inputmode="decimal">
+        </div>
+
+        <div id="foundationFieldsPiles" style="display:none">
+          <label for="pileRadius">Радиус сваи r (м)</label>
+          <input id="pileRadius" type="number" min="0" step="0.01" placeholder="например: 0.15" inputmode="decimal">
+
+          <label for="pileHeight">Глубина/высота сваи h (м)</label>
+          <input id="pileHeight" type="number" min="0" step="0.01" placeholder="например: 2.5" inputmode="decimal">
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+          <button id="volumeCalcBtn" class="button" type="button">Рассчитать объём</button>
+          <button id="volumeClearBtn" class="button secondary" type="button">Сброс</button>
+        </div>
+        <div id="volumeResult" class="calc-result">—</div>
+
+        <hr style="margin:14px 0">
+        <h3 style="margin:0 0 8px">Калькулятор стоимости</h3>
         <div id="typesArea">
           <label>Типы бетона</label>
           <div id="typesContainer">
@@ -106,25 +151,6 @@
           <button id="clearBtn" class="button secondary" type="button">Сброс</button>
         </div>
         <div id="calcResult" class="calc-result">—</div>
-
-        <hr style="margin:14px 0">
-        <h3 style="margin:0 0 8px">Калькулятор объёма фундамента</h3>
-        <div class="small">Формула: длина × ширина × высота (в метрах).</div>
-
-        <label for="foundationLength">Длина (м)</label>
-        <input id="foundationLength" type="number" min="0" step="0.01" placeholder="например: 10" inputmode="decimal">
-
-        <label for="foundationWidth">Ширина (м)</label>
-        <input id="foundationWidth" type="number" min="0" step="0.01" placeholder="например: 8" inputmode="decimal">
-
-        <label for="foundationHeight">Высота (м)</label>
-        <input id="foundationHeight" type="number" min="0" step="0.01" placeholder="например: 0.6" inputmode="decimal">
-
-        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
-          <button id="volumeCalcBtn" class="button" type="button">Рассчитать объём</button>
-          <button id="volumeClearBtn" class="button secondary" type="button">Сброс</button>
-        </div>
-        <div id="volumeResult" class="calc-result">—</div>
 
         <h4 style="margin-top:12px">Данные покупателя</h4>
         <label for="buyerName">Имя</label>

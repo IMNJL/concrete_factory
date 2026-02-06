@@ -503,6 +503,50 @@ label {
   margin: 8px 0 6px;
 }
 
+.foundation-tabs-label {
+  display: block;
+  font-size: 13px;
+  margin: 8px 0 6px;
+  font-weight: 800;
+}
+
+.foundation-tabs {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 4px;
+  margin-bottom: 6px;
+}
+
+.foundation-tab {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  padding: 10px 14px;
+  min-height: 44px;
+  border-radius: 9999px;
+  border: 1px solid rgba(17, 24, 39, 0.12);
+  background: #fff;
+  font-weight: 900;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.foundation-tab.is-active {
+  background: linear-gradient(180deg, rgba(0, 164, 239, 0.16), rgba(0, 120, 215, 0.10));
+  border-color: rgba(0, 120, 215, 0.45);
+  box-shadow: 0 0 0 4px rgba(0, 164, 239, 0.18);
+}
+
+.foundation-tab:focus {
+  outline: none;
+}
+
+.foundation-tab:focus-visible {
+  box-shadow: 0 0 0 4px var(--ring);
+}
+
 input,
 select,
 textarea {
@@ -512,6 +556,31 @@ textarea {
   border: 1px solid #e5e7eb;
   background: #fff;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* If a select with id foundationType exists (legacy), keep it usable */
+select#foundationType {
+  font-size: clamp(16px, 3.6vw, 18px);
+  font-weight: 900;
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  padding: 14px 44px 14px 12px;
+  height: 54px;
+  min-height: 54px;
+  line-height: 1.2;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  background-color: #fff;
+  background-image:
+    linear-gradient(45deg, transparent 50%, rgba(17, 24, 39, 0.8) 50%),
+    linear-gradient(135deg, rgba(17, 24, 39, 0.8) 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) 50%,
+    calc(100% - 12px) 50%;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
 }
 
 input:focus,
