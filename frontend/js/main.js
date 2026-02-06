@@ -44,6 +44,43 @@ document.addEventListener('DOMContentLoaded', ()=>{
     return num.toFixed(2).replace('.', ',')
   }
 
+  function isValidBuyerName(name){
+    return String(name || '').trim().length >= 2
+  }
+
+  function isValidBuyerEmail(email){
+    const re = /^([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)$/
+    return re.test(String(email || '').trim())
+  }
+
+  function isValidBuyerPhone(phone){
+    const raw = String(phone || '').trim()
+    if(!(raw.startsWith('+7') || raw.startsWith('8'))) return false
+    const digits = raw.replace(/\D/g, '')
+    // РФ: +7XXXXXXXXXX или 8XXXXXXXXXX (11 цифр)
+    return digits.length === 11 && (digits[0] === '7' || digits[0] === '8')
+  }
+
+  function sanitizeBuyerNameInput(name){
+    // запрет цифр в имени
+    return String(name || '').replace(/\d+/g, '')
+  }
+
+  function sanitizeBuyerPhoneInput(phone){
+    // запрещаем буквы/прочие символы; оставляем цифры, пробелы, +, (), -
+    let s = String(phone || '').replace(/[^0-9+()\s-]+/g, '')
+    // '+' допускаем только в начале
+    const keepLeadingPlus = s.startsWith('+')
+    s = s.replace(/\+/g, '')
+    if(keepLeadingPlus) s = '+' + s
+    return s
+  }
+
+  function setInvalid(el, invalid){
+    if(!el) return
+    el.classList.toggle('is-invalid', Boolean(invalid))
+  }
+
   function getApiBaseUrl(){
     const cfg = (window && window.__APP_CONFIG__) ? window.__APP_CONFIG__ : null
     const raw = cfg && typeof cfg.apiBaseUrl === 'string' ? cfg.apiBaseUrl : ''
@@ -580,6 +617,36 @@ document.addEventListener('DOMContentLoaded', ()=>{
   const addTypeBtn = document.getElementById('addTypeBtn')
   const submitOrderBtn = document.getElementById('submitOrder')
   const submitStatus = document.getElementById('submitStatus')
+  const deliveryKmEl = document.getElementById('deliveryKm')
+
+  const buyerNameEl = document.getElementById('buyerName')
+  const buyerPhoneEl = document.getElementById('buyerPhone')
+  const buyerEmailEl = document.getElementById('buyerEmail')
+  if(buyerNameEl){
+    buyerNameEl.addEventListener('input', ()=>{
+      const cleaned = sanitizeBuyerNameInput(buyerNameEl.value)
+      if(buyerNameEl.value !== cleaned) buyerNameEl.value = cleaned
+      setInvalid(buyerNameEl, !isValidBuyerName(buyerNameEl.value))
+    })
+  }
+  if(buyerPhoneEl){
+    buyerPhoneEl.addEventListener('input', ()=>{
+      const cleaned = sanitizeBuyerPhoneInput(buyerPhoneEl.value)
+      if(buyerPhoneEl.value !== cleaned) buyerPhoneEl.value = cleaned
+      setInvalid(buyerPhoneEl, !isValidBuyerPhone(buyerPhoneEl.value))
+    })
+  }
+  if(buyerEmailEl){
+    buyerEmailEl.addEventListener('input', ()=> setInvalid(buyerEmailEl, !isValidBuyerEmail(buyerEmailEl.value)))
+  }
+
+  if(deliveryKmEl){
+    deliveryKmEl.addEventListener('input', ()=>{
+      const cleaned = String(deliveryKmEl.value || '').replace(/\D+/g, '')
+      if(deliveryKmEl.value !== cleaned) deliveryKmEl.value = cleaned
+      deliveryKmEl.classList.remove('is-invalid')
+    })
+  }
 
   if(calcBtn){
     calcBtn.addEventListener('click', ()=>{
@@ -777,10 +844,30 @@ document.addEventListener('DOMContentLoaded', ()=>{
   // submit order: build markdown table with rows
   if(submitOrderBtn){
     submitOrderBtn.addEventListener('click', async ()=>{
-      const buyerName = (document.getElementById('buyerName')||{}).value || ''
-      const buyerPhone = (document.getElementById('buyerPhone')||{}).value || ''
-      const buyerEmail = (document.getElementById('buyerEmail')||{}).value || ''
-      if(!buyerName || !buyerPhone || !buyerEmail){ alert('Пожалуйста, укажите имя, телефон и email покупателя.'); return }
+      const buyerNameEl = document.getElementById('buyerName')
+      const buyerPhoneEl = document.getElementById('buyerPhone')
+      const buyerEmailEl = document.getElementById('buyerEmail')
+
+      const buyerName = buyerNameEl ? String(buyerNameEl.value || '') : ''
+      const buyerPhone = buyerPhoneEl ? String(buyerPhoneEl.value || '') : ''
+      const buyerEmail = buyerEmailEl ? String(buyerEmailEl.value || '') : ''
+
+      const badName = !isValidBuyerName(buyerName)
+      const badPhone = !isValidBuyerPhone(buyerPhone)
+      const badEmail = !isValidBuyerEmail(buyerEmail)
+
+      setInvalid(buyerNameEl, badName)
+      setInvalid(buyerPhoneEl, badPhone)
+      setInvalid(buyerEmailEl, badEmail)
+
+      if(badName || badPhone || badEmail){
+        const parts = []
+        if(badName) parts.push('Имя: минимум 2 символа')
+        if(badPhone) parts.push('Телефон: начинается с +7 или 8 и содержит 11 цифр')
+        if(badEmail) parts.push('Email: неверный формат')
+        alert(parts.join('\n'))
+        return
+      }
 
   const res = computeTotals()
   if(res.error){ alert(res.error); return }

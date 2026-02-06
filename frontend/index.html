@@ -144,7 +144,7 @@
         </div>
 
         <label for="deliveryKm" style="margin-top:12px">Доставка — примерное расстояние (км)</label>
-        <input id="deliveryKm" type="number" min="0" step="1" value="5" placeholder="например: 10" inputmode="decimal">
+        <input id="deliveryKm" type="text" value="5" placeholder="например: 10" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
 
         <div style="display:flex;gap:8px;margin-top:12px">
           <button id="calcBtn" class="button">Рассчитать</button>
