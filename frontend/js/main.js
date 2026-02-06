@@ -29,7 +29,15 @@ document.addEventListener('DOMContentLoaded', ()=>{
     const cfg = (window && window.__APP_CONFIG__) ? window.__APP_CONFIG__ : null
     const raw = cfg && typeof cfg.apiBaseUrl === 'string' ? cfg.apiBaseUrl : ''
     const trimmed = String(raw || '').trim()
-    return trimmed.replace(/\/+$/,'')
+    const base = trimmed.replace(/\/+$/,'')
+    if(base) return base
+
+    // Fallback for GitHub Pages in case config.js is missing/cached incorrectly.
+    const host = (window && window.location && window.location.hostname)
+      ? String(window.location.hostname).toLowerCase()
+      : ''
+    if(host && host.endsWith('github.io')) return 'https://concrete-factory.onrender.com'
+    return ''
   }
 
   function apiUrl(p){

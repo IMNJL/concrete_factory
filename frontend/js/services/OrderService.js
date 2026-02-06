@@ -7,7 +7,14 @@ export class OrderService {
     try {
       const cfg = (window && window.__APP_CONFIG__) ? window.__APP_CONFIG__ : null;
       const raw = cfg && typeof cfg.apiBaseUrl === 'string' ? cfg.apiBaseUrl : '';
-      return String(raw || '').trim().replace(/\/+$/, '');
+      const base = String(raw || '').trim().replace(/\/+$/, '');
+      if (base) return base;
+
+      const host = (window && window.location && window.location.hostname)
+        ? String(window.location.hostname).toLowerCase()
+        : '';
+      if (host && host.endsWith('github.io')) return 'https://concrete-factory.onrender.com';
+      return '';
     } catch (_) {
       return '';
     }
