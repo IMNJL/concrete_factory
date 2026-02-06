@@ -667,11 +667,15 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
       submitStatus.textContent = 'Отправка...'
       try{
-        const resp = await fetch(apiUrl('/api/order'), {
+        const url = apiUrl('/api/order')
+        const resp = await fetch(url, {
           method: 'POST', headers: {'Content-Type':'application/json'},
           body: JSON.stringify({ markdown: md, order:{details, materialTotal, delivery, total, km, buyerName, buyerPhone, buyerEmail} })
         })
-        if(!resp.ok) throw new Error(await resp.text())
+        if(!resp.ok){
+          const text = await resp.text().catch(()=> '')
+          throw new Error(`HTTP ${resp.status} ${resp.statusText} при запросе ${url}\n${text}`)
+        }
         const data = await resp.json().catch(()=>null)
         if(data && data.email && data.email.attempted && !data.email.sent){
           submitStatus.textContent = 'Заказ сохранён, но письмо не отправлено.'
@@ -697,7 +701,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
       try{
         const fd = new FormData(contactForm)
         const payload = Object.fromEntries(fd.entries())
-        const resp = await fetch(apiUrl('/sendform'), {
+        const url = apiUrl('/sendform')
+        const resp = await fetch(url, {
           method: 'POST',
           headers: {'Content-Type':'application/json'},
           body: JSON.stringify(payload)
@@ -707,6 +712,10 @@ document.addEventListener('DOMContentLoaded', ()=>{
           if(contactStatus) contactStatus.textContent = 'Отправлено.'
           contactForm.reset()
           return
+        }
+        if(!resp.ok){
+          const text = await resp.text().catch(()=> '')
+          throw new Error(`HTTP ${resp.status} ${resp.statusText} при запросе ${url}\n${text}`)
         }
         const msg = (data && (data.error || data.message)) ? String(data.error || data.message) : 'Не удалось отправить'
         if(contactStatus) contactStatus.textContent = 'Ошибка отправки'

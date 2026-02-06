@@ -2,6 +2,8 @@
 // This file is SAFE to commit (no secrets). It can be overwritten during CI build.
 window.__APP_CONFIG__ = window.__APP_CONFIG__ || {
   // Example: "https://your-backend.example.com"
-
-  apiBaseUrl: 'https://imnjl.github.io/concrete_factory/'
+  // IMPORTANT:
+  // - This must be the BACKEND base URL (where your Node server is deployed), not the GitHub Pages URL.
+  // - Empty string means same-origin (works when you open the site via the Node server).
+  apiBaseUrl: ''
 };
