@@ -16,3 +16,4 @@ server/.env
 # GitHub Pages build output
 dist/
 .dist/
+server/orders.json

@@ -25,6 +25,25 @@ document.addEventListener('DOMContentLoaded', ()=>{
   // --- Utils ---
   function formatPrice(n){ return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }
 
+  function parseLocaleNumber(val){
+    const raw = String(val ?? '').trim()
+    if(!raw) return NaN
+    return parseFloat(raw.replace(',', '.'))
+  }
+
+  function roundTo(n, digits){
+    const num = Number(n)
+    if(!isFinite(num)) return NaN
+    const m = Math.pow(10, digits)
+    return Math.round(num * m) / m
+  }
+
+  function formatM3(n){
+    const num = Number(n)
+    if(!isFinite(num)) return ''
+    return num.toFixed(2).replace('.', ',')
+  }
+
   function getApiBaseUrl(){
     const cfg = (window && window.__APP_CONFIG__) ? window.__APP_CONFIG__ : null
     const raw = cfg && typeof cfg.apiBaseUrl === 'string' ? cfg.apiBaseUrl : ''
@@ -434,8 +453,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
     const vol = document.createElement('input')
     vol.type = 'number'
     vol.min = '0'
-    vol.step = '0.1'
-    vol.value = String(volume)
+    vol.step = '0.01'
+    vol.value = isFinite(Number(volume)) ? Number(volume).toFixed(2) : '1.00'
     vol.className = 'type-volume'
     vol.style.width = '110px'
     vol.style.padding = '10px'
@@ -448,8 +467,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
         vol.classList.remove('is-invalid')
         return
       }
-      const n = vol.valueAsNumber
-      const invalid = !isFinite(n)
+      const n = parseLocaleNumber(raw)
+      const invalid = !isFinite(n) || !(n > 0)
       vol.classList.toggle('is-invalid', invalid)
     }
 
@@ -504,7 +523,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
       if(!variantId) return { error: `Выберите класс/марку в строке ${i+1}` }
 
       const volRaw = volEl ? String(volEl.value || '').trim() : ''
-      const volNum = volEl ? volEl.valueAsNumber : NaN
+      const volNum = volEl ? parseLocaleNumber(volRaw) : NaN
       const volIsNumber = isFinite(volNum)
       if(!volRaw || !volIsNumber){
         if(volEl) volEl.classList.add('is-invalid')
@@ -515,24 +534,32 @@ document.addEventListener('DOMContentLoaded', ()=>{
         return { error: `Введите объём (>0) в строке ${i+1}` }
       }
 
+      // normalize to 0.01 m³ precision
+      const volRounded = roundTo(volNum, 2)
+      if(!isFinite(volRounded) || !(volRounded > 0)){
+        if(volEl) volEl.classList.add('is-invalid')
+        return { error: `Введите объём (>0) в строке ${i+1}` }
+      }
+      if(volEl) volEl.value = volRounded.toFixed(2)
+
       const item = priceCatalog.itemsById[variantId]
       if(!item) return { error: `Невозможно найти цену для выбранной позиции (строка ${i+1})` }
       const price = item.price
-      const cost = Math.round(price * volNum)
+      const cost = Math.round(price * volRounded)
       materialTotal += cost
       details.push({
         type: item.typeLabel,
         mark: item.mark,
         frost: item.frost,
         label: item.display,
-        vol: volNum,
+        vol: volRounded,
         price,
         cost,
       })
     }
 
     const kmRaw = deliveryKmEl ? String(deliveryKmEl.value || '').trim() : ''
-    const kmNum = deliveryKmEl ? deliveryKmEl.valueAsNumber : NaN
+    const kmNum = deliveryKmEl ? parseLocaleNumber(kmRaw) : NaN
     if(kmRaw && !isFinite(kmNum)){
       if(deliveryKmEl) deliveryKmEl.classList.add('is-invalid')
       return { error: 'Расстояние доставки должно быть числом.' }
@@ -565,7 +592,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
   if(clearBtn){
     clearBtn.addEventListener('click', ()=>{
       // reset volumes to 1, delivery to 5
-      document.querySelectorAll('.type-volume').forEach(inp=>{ inp.value = '1'; inp.classList.remove('is-invalid') })
+      document.querySelectorAll('.type-volume').forEach(inp=>{ inp.value = '1.00'; inp.classList.remove('is-invalid') })
       const deliveryKm = document.getElementById('deliveryKm')
       if(deliveryKm){
         deliveryKm.value = '5'
@@ -596,9 +623,27 @@ document.addEventListener('DOMContentLoaded', ()=>{
   const pileRadius = document.getElementById('pileRadius')
   const pileHeight = document.getElementById('pileHeight')
 
-  function parseNum(val){
-    if(val==null) return NaN
-    return parseFloat(String(val).replace(',', '.'))
+  function setConcreteVolumeFromFoundation(volumeM3){
+    const v = roundTo(volumeM3, 2)
+    if(!isFinite(v) || !(v > 0)) return
+
+    // Ensure there is at least one type row
+    if(typesContainer && typesContainer.children.length === 0){
+      typesContainer.appendChild(createTypeRow())
+    }
+
+    const active = document.activeElement
+    const activeIsVolume = active && active.classList && active.classList.contains('type-volume')
+    const isActiveInsideTypes = activeIsVolume && typesContainer && typesContainer.contains(active)
+
+    const firstRowVolume = typesContainer
+      ? typesContainer.querySelector('.type-row .type-volume')
+      : document.querySelector('.type-row .type-volume')
+
+    const target = isActiveInsideTypes ? active : firstRowVolume
+    if(!target) return
+    target.value = v.toFixed(2)
+    target.classList.remove('is-invalid')
   }
 
   function setVisible(el, visible){
@@ -662,9 +707,9 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
       if(kind === 'strip'){
         if(!foundationLength || !foundationWidth || !foundationHeight){ volumeResult.textContent = '—'; return }
-        const l = parseNum(foundationLength.value)
-        const w = parseNum(foundationWidth.value)
-        const h = parseNum(foundationHeight.value)
+        const l = parseLocaleNumber(foundationLength.value)
+        const w = parseLocaleNumber(foundationWidth.value)
+        const h = parseLocaleNumber(foundationHeight.value)
 
         const invalidL = (!isFinite(l) || l <= 0)
         const invalidW = (!isFinite(w) || w <= 0)
@@ -675,40 +720,40 @@ document.addEventListener('DOMContentLoaded', ()=>{
         foundationHeight.classList.toggle('is-invalid', invalidH)
 
         if(invalidL || invalidW || invalidH){ volumeResult.textContent = '—'; return }
-        const v = l*w*h
-        const vStr = (Math.round(v*1000)/1000).toString().replace('.', ',')
-        volumeResult.textContent = `Объём: ${vStr} м³`
+        const v = roundTo(l*w*h, 2)
+        volumeResult.textContent = `Объём: ${formatM3(v)} м³`
+        setConcreteVolumeFromFoundation(v)
         return
       }
 
       if(kind === 'slab'){
         if(!slabArea || !slabThickness){ volumeResult.textContent = '—'; return }
-        const s = parseNum(slabArea.value)
-        const h = parseNum(slabThickness.value)
+        const s = parseLocaleNumber(slabArea.value)
+        const h = parseLocaleNumber(slabThickness.value)
         const invalidS = (!isFinite(s) || s <= 0)
         const invalidH = (!isFinite(h) || h <= 0)
         slabArea.classList.toggle('is-invalid', invalidS)
         slabThickness.classList.toggle('is-invalid', invalidH)
         if(invalidS || invalidH){ volumeResult.textContent = '—'; return }
-        const v = s*h
-        const vStr = (Math.round(v*1000)/1000).toString().replace('.', ',')
-        volumeResult.textContent = `Объём: ${vStr} м³`
+        const v = roundTo(s*h, 2)
+        volumeResult.textContent = `Объём: ${formatM3(v)} м³`
+        setConcreteVolumeFromFoundation(v)
         return
       }
 
       // piles
       if(!pileRadius || !pileHeight){ volumeResult.textContent = '—'; return }
-      const r = parseNum(pileRadius.value)
-      const h = parseNum(pileHeight.value)
+      const r = parseLocaleNumber(pileRadius.value)
+      const h = parseLocaleNumber(pileHeight.value)
       const invalidR = (!isFinite(r) || r <= 0)
       const invalidH = (!isFinite(h) || h <= 0)
       pileRadius.classList.toggle('is-invalid', invalidR)
       pileHeight.classList.toggle('is-invalid', invalidH)
       if(invalidR || invalidH){ volumeResult.textContent = '—'; return }
       const pi = 3.14
-      const v = pi * r * r * h
-      const vStr = (Math.round(v*1000)/1000).toString().replace('.', ',')
-      volumeResult.textContent = `Объём: ${vStr} м³`
+      const v = roundTo(pi * r * r * h, 2)
+      volumeResult.textContent = `Объём: ${formatM3(v)} м³`
+      setConcreteVolumeFromFoundation(v)
     })
   }
 
@@ -747,7 +792,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
       lines.push('|---:|---|---|---:|---:|---:|')
       details.forEach((d,i)=>{
         const frostPart = d.frost ? ` (F${d.frost})` : ''
-        lines.push(`| ${i+1} | ${d.type} | ${d.mark}${frostPart} | ${d.vol} | ${formatPrice(d.price)} ₽ | ${formatPrice(d.cost)} ₽ |`)
+        lines.push(`| ${i+1} | ${d.type} | ${d.mark}${frostPart} | ${formatM3(d.vol)} | ${formatPrice(d.price)} ₽ | ${formatPrice(d.cost)} ₽ |`)
       })
       lines.push('')
       lines.push(`**Материал:** ${formatPrice(materialTotal)} ₽`)
