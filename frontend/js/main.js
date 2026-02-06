@@ -25,6 +25,20 @@ document.addEventListener('DOMContentLoaded', ()=>{
   // --- Utils ---
   function formatPrice(n){ return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }
 
+  function getApiBaseUrl(){
+    const cfg = (window && window.__APP_CONFIG__) ? window.__APP_CONFIG__ : null
+    const raw = cfg && typeof cfg.apiBaseUrl === 'string' ? cfg.apiBaseUrl : ''
+    const trimmed = String(raw || '').trim()
+    return trimmed.replace(/\/+$/,'')
+  }
+
+  function apiUrl(p){
+    const base = getApiBaseUrl()
+    const path = String(p || '')
+    if(!base) return path
+    return base + (path.startsWith('/') ? path : `/${path}`)
+  }
+
   function escapeHtml(s){
     return String(s)
       .replace(/&/g, '&amp;')
@@ -653,14 +667,14 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
       submitStatus.textContent = 'Отправка...'
       try{
-        const resp = await fetch('/api/order', {
+        const resp = await fetch(apiUrl('/api/order'), {
           method: 'POST', headers: {'Content-Type':'application/json'},
           body: JSON.stringify({ markdown: md, order:{details, materialTotal, delivery, total, km, buyerName, buyerPhone, buyerEmail} })
         })
         if(!resp.ok) throw new Error(await resp.text())
         const data = await resp.json().catch(()=>null)
         if(data && data.email && data.email.attempted && !data.email.sent){
-          submitStatus.textContent = 'Заказ сохранён, но письмо не отправлено (SMTP).'
+          submitStatus.textContent = 'Заказ сохранён, но письмо не отправлено.'
           alert('Заказ сохранён на сервере, но письмо не отправилось.\nПричина: ' + (data.email.error || 'unknown'))
         } else {
           submitStatus.textContent = 'Отправлено — проверьте почту предприятия.'
@@ -668,7 +682,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
       }catch(err){
         console.error(err)
         submitStatus.textContent = 'Ошибка отправки (см. консоль)'
-        alert('Ошибка отправки заказа. Сервер может быть не запущен или неверные настройки SMTP.\n' + err.message)
+        alert('Ошибка отправки заказа. Сервер может быть не запущен или неверные настройки почты/сети.\n' + err.message)
       }
     })
   }
@@ -683,7 +697,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
       try{
         const fd = new FormData(contactForm)
         const payload = Object.fromEntries(fd.entries())
-        const resp = await fetch('/sendform', {
+        const resp = await fetch(apiUrl('/sendform'), {
           method: 'POST',
           headers: {'Content-Type':'application/json'},
           body: JSON.stringify(payload)
@@ -695,7 +709,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
           return
         }
         const msg = (data && (data.error || data.message)) ? String(data.error || data.message) : 'Не удалось отправить'
-        if(contactStatus) contactStatus.textContent = 'Ошибка (SMTP/сеть)'
+        if(contactStatus) contactStatus.textContent = 'Ошибка отправки'
         alert('Сообщение сохранено на сервере, но не отправлено на почту.\nПричина: ' + msg)
       }catch(err){
         console.error(err)
