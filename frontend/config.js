@@ -15,11 +15,17 @@
     return ''
   })()
 
-  window.__APP_CONFIG__ = window.__APP_CONFIG__ || {
+  const existing = (window && window.__APP_CONFIG__ && typeof window.__APP_CONFIG__ === 'object') ? window.__APP_CONFIG__ : {}
+  const existingApiBaseUrl = (existing && typeof existing.apiBaseUrl === 'string')
+    ? String(existing.apiBaseUrl).trim().replace(/\/+$/, '')
+    : ''
+
+  window.__APP_CONFIG__ = {
+    ...existing,
     // Example: "https://your-backend.example.com"
     // IMPORTANT:
     // - This must be the BACKEND base URL (where your Node server is deployed), not the GitHub Pages URL.
     // - Empty string means same-origin.
-    apiBaseUrl: defaultApiBaseUrl
+    apiBaseUrl: existingApiBaseUrl || defaultApiBaseUrl
   }
 })()
