@@ -49,8 +49,15 @@ jobs:
           PUBLIC_API_BASE_URL_SECRET: ${{ secrets.PUBLIC_API_BASE_URL }}
         run: |
           set -euo pipefail
-          export API_BASE_URL="${PUBLIC_API_BASE_URL_SECRET:-$PUBLIC_API_BASE_URL}"
-          python3 -c "import os, json; api=(os.getenv('API_BASE_URL') or os.getenv('PUBLIC_API_BASE_URL') or '').strip(); print('window.__APP_CONFIG__ = ' + json.dumps({'apiBaseUrl': api}) + ';')" > dist/config.js
+          API_BASE_URL="${PUBLIC_API_BASE_URL_SECRET:-$PUBLIC_API_BASE_URL}"
+          if [ -n "${API_BASE_URL}" ]; then
+            export API_BASE_URL
+            python3 -c "import os, json; api=(os.getenv('API_BASE_URL') or '').strip(); print('window.__APP_CONFIG__ = ' + json.dumps({'apiBaseUrl': api}) + ';')" > dist/config.js
+            echo "Public config generated: apiBaseUrl=${API_BASE_URL}"
+          else
+            echo "PUBLIC_API_BASE_URL is not set; keeping existing dist/config.js from frontend/ (apiBaseUrl as committed)."
+            echo "Add it in GitHub: Settings -> Secrets and variables -> Actions -> Variables (or Secrets)."
+          fi
 
       - name: Configure Pages
         id: configure_pages
