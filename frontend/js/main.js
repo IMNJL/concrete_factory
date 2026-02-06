@@ -428,6 +428,19 @@ document.addEventListener('DOMContentLoaded', ()=>{
     vol.style.borderRadius = '8px'
     vol.style.border = '1px solid #e5e7eb'
 
+    function updateVolInvalidState(){
+      const raw = String(vol.value || '').trim()
+      if(raw === ''){
+        vol.classList.remove('is-invalid')
+        return
+      }
+      const n = vol.valueAsNumber
+      const invalid = !isFinite(n)
+      vol.classList.toggle('is-invalid', invalid)
+    }
+
+    vol.addEventListener('input', updateVolInvalidState)
+
     const rm = document.createElement('button')
     rm.type = 'button'
     rm.textContent = '✕'
@@ -456,6 +469,15 @@ document.addEventListener('DOMContentLoaded', ()=>{
     if(!priceCatalog) return { error: 'Прайс загружается, попробуйте ещё раз через секунду.' }
     const rows = Array.from(document.querySelectorAll('.type-row'))
     if(rows.length === 0) return { error: 'Добавьте хотя бы один тип бетона.' }
+
+    // reset invalid state from previous run
+    rows.forEach(r=>{
+      const v = r.querySelector('.type-volume')
+      if(v) v.classList.remove('is-invalid')
+    })
+    const deliveryKmEl = document.getElementById('deliveryKm')
+    if(deliveryKmEl) deliveryKmEl.classList.remove('is-invalid')
+
     let materialTotal = 0
     const details = []
     for(let i=0;i<rows.length;i++){
@@ -465,25 +487,48 @@ document.addEventListener('DOMContentLoaded', ()=>{
       const volEl = r.querySelector('.type-volume')
       if(!kindEl || !variantEl) return { error: `Внутренняя ошибка: отсутствуют селекторы в строке ${i+1}` }
       const variantId = String(variantEl.value || '').trim()
-      const vol = parseFloat(volEl.value) || 0
       if(!variantId) return { error: `Выберите класс/марку в строке ${i+1}` }
-      if(!(vol > 0)) return { error: `Введите объём (>0) в строке ${i+1}` }
+
+      const volRaw = volEl ? String(volEl.value || '').trim() : ''
+      const volNum = volEl ? volEl.valueAsNumber : NaN
+      const volIsNumber = isFinite(volNum)
+      if(!volRaw || !volIsNumber){
+        if(volEl) volEl.classList.add('is-invalid')
+        return { error: `Введите объём числом в строке ${i+1}` }
+      }
+      if(!(volNum > 0)){
+        if(volEl) volEl.classList.add('is-invalid')
+        return { error: `Введите объём (>0) в строке ${i+1}` }
+      }
+
       const item = priceCatalog.itemsById[variantId]
       if(!item) return { error: `Невозможно найти цену для выбранной позиции (строка ${i+1})` }
       const price = item.price
-      const cost = Math.round(price * vol)
+      const cost = Math.round(price * volNum)
       materialTotal += cost
       details.push({
         type: item.typeLabel,
         mark: item.mark,
         frost: item.frost,
         label: item.display,
-        vol,
+        vol: volNum,
         price,
         cost,
       })
     }
-    const km = parseFloat(document.getElementById('deliveryKm').value) || 0
+
+    const kmRaw = deliveryKmEl ? String(deliveryKmEl.value || '').trim() : ''
+    const kmNum = deliveryKmEl ? deliveryKmEl.valueAsNumber : NaN
+    if(kmRaw && !isFinite(kmNum)){
+      if(deliveryKmEl) deliveryKmEl.classList.add('is-invalid')
+      return { error: 'Расстояние доставки должно быть числом.' }
+    }
+    if(isFinite(kmNum) && kmNum < 0){
+      if(deliveryKmEl) deliveryKmEl.classList.add('is-invalid')
+      return { error: 'Расстояние доставки не может быть отрицательным.' }
+    }
+
+    const km = isFinite(kmNum) ? kmNum : 0
     const delivery = 1500 + (50 * km)
     const total = Math.round(materialTotal + delivery)
     return {details, materialTotal, delivery, total, km}
@@ -506,8 +551,12 @@ document.addEventListener('DOMContentLoaded', ()=>{
   if(clearBtn){
     clearBtn.addEventListener('click', ()=>{
       // reset volumes to 1, delivery to 5
-      document.querySelectorAll('.type-volume').forEach(inp=> inp.value = '1')
-      document.getElementById('deliveryKm').value = '5'
+      document.querySelectorAll('.type-volume').forEach(inp=>{ inp.value = '1'; inp.classList.remove('is-invalid') })
+      const deliveryKm = document.getElementById('deliveryKm')
+      if(deliveryKm){
+        deliveryKm.value = '5'
+        deliveryKm.classList.remove('is-invalid')
+      }
       document.getElementById('calcResult').textContent = '—'
     })
   }
@@ -606,7 +655,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
       try{
         const resp = await fetch('/api/order', {
           method: 'POST', headers: {'Content-Type':'application/json'},
-          body: JSON.stringify({ markdown: md, order:{details, materialTotal, delivery, total, buyerName, buyerPhone, buyerEmail} })
+          body: JSON.stringify({ markdown: md, order:{details, materialTotal, delivery, total, km, buyerName, buyerPhone, buyerEmail} })
         })
         if(!resp.ok) throw new Error(await resp.text())
         const data = await resp.json().catch(()=>null)

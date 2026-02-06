@@ -1,23 +1,36 @@
 const express = require('express')
 const fs = require('fs')
 const path = require('path')
-const net = require('net')
-const nodemailer = require('nodemailer')
-require('dotenv').config({ path: path.join(__dirname, '.env') })
+const https = require('https')
+const dotenv = require('dotenv')
+
+// Load environment variables.
+// Prefer server/.env, but also support repo-root .env for convenience.
+const envCandidates = [
+  path.join(__dirname, '.env'),
+  path.join(__dirname, '..', '.env'),
+]
+let loadedEnvPath = null
+for (const p of envCandidates) {
+  if (fs.existsSync(p)) {
+    dotenv.config({ path: p, override: false })
+    loadedEnvPath = loadedEnvPath || p
+  }
+}
 
 const app = express()
-const PORT = 3002
+const PORT = parseInt(process.env.PORT || '3002', 10)
 
 app.use(express.json({ limit: '1mb' }))
 app.use(express.urlencoded({ extended: false }))
 
 // Serve static site from ../frontend
-const frontendPath = path.join(__dirname, '../frontend');
-app.use(express.static(frontendPath));
+const frontendPath = path.join(__dirname, '../frontend')
+app.use(express.static(frontendPath))
 
 app.get('/', (req, res) => {
-  res.sendFile(path.join(frontendPath, 'index.html'));
-});
+  res.sendFile(path.join(frontendPath, 'index.html'))
+})
 
 // orders file
 const ordersFile = path.join(__dirname, 'orders.json')
@@ -28,117 +41,362 @@ const messagesFile = path.join(__dirname, 'messages.json')
 // prices file
 const pricesFile = path.join(__dirname, 'prices.json')
 
-// Create transporter if SMTP config present
-function createTransporterFromEnv() {
-  const host = (process.env.SMTP_HOST || '').trim()
-  const port = parseInt(process.env.SMTP_PORT || '587', 10)
+// --- Email sending (recommended): HTTPS Email API (Resend) ---
+const EMAIL_PROVIDER = String(process.env.EMAIL_PROVIDER || 'resend').trim().toLowerCase()
 
-  // If user does not specify SMTP_SECURE, infer from port
-  const secureEnv = (process.env.SMTP_SECURE || '').trim()
-  const secure = secureEnv
-    ? String(secureEnv).toLowerCase() === 'true'
-    : port === 465
-
-  const user = (process.env.SMTP_USER || '').trim()
-  const pass = process.env.SMTP_PASS || ''
-  const debug = String(process.env.SMTP_DEBUG || 'false').toLowerCase() === 'true'
-  const requireTLS = String(
-    process.env.SMTP_REQUIRE_TLS || (secure ? 'false' : 'true')
-  ).toLowerCase() === 'true'
-
-  if (!host || !user || !pass) return null
-
-  return nodemailer.createTransport({
-    host,
-    port,
-    secure,
-    requireTLS,
-    auth: { user, pass },
-    tls: {
-      servername: host,
-      minVersion: 'TLSv1.2'
-    },
-    // Prevent hanging forever
-    connectionTimeout: 15_000,
-    greetingTimeout: 15_000,
-    socketTimeout: 30_000,
-    logger: debug,
-    debug
-  })
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
 }
 
-const transporter = createTransporterFromEnv()
-let lastSmtpVerify = { ok: false, at: null, error: null }
-if (transporter) {
-  transporter
-    .verify()
-    .then(() => {
-      lastSmtpVerify = { ok: true, at: new Date().toISOString(), error: null }
-      console.log('SMTP: transporter verified')
-    })
-    .catch((err) => {
-      lastSmtpVerify = {
-        ok: false,
-        at: new Date().toISOString(),
-        error: err && err.message ? err.message : String(err)
+function formatIntSpaces(n) {
+  const num = Number(n)
+  if (!isFinite(num)) return String(n ?? '')
+  return String(Math.round(num)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
+}
+
+function formatRubles(n) {
+  const num = Number(n)
+  if (!isFinite(num)) return String(n ?? '')
+  return `${formatIntSpaces(num)} ₽`
+}
+
+function formatDateTimeRu(isoOrDate) {
+  const d = isoOrDate instanceof Date ? isoOrDate : new Date(String(isoOrDate || ''))
+  if (!isFinite(d.getTime())) return String(isoOrDate || '')
+  try {
+    return new Intl.DateTimeFormat('ru-RU', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(d)
+  } catch (_) {
+    return d.toISOString()
+  }
+}
+
+function buildOrderEmail({ now, order, markdown, ip }) {
+  const safeOrder = order && typeof order === 'object' ? order : {}
+  const details = Array.isArray(safeOrder.details) ? safeOrder.details : []
+  const buyerName = String(safeOrder.buyerName || '').trim()
+  const buyerPhone = String(safeOrder.buyerPhone || '').trim()
+  const buyerEmail = String(safeOrder.buyerEmail || '').trim()
+
+  const materialTotal = safeOrder.materialTotal
+  const delivery = safeOrder.delivery
+  const total = safeOrder.total
+  const km = safeOrder.km
+
+  const prettyNow = formatDateTimeRu(now)
+  const subjectTotal = isFinite(Number(total)) ? ` — ${formatRubles(total)}` : ''
+  const subject = `Новый заказ с сайта${subjectTotal}`
+
+  const rowsHtml = details.length
+    ? details.map((d, idx) => {
+        const type = escapeHtml(d && d.type ? d.type : '—')
+        const mark = escapeHtml(d && d.mark ? d.mark : '—')
+        const frost = d && d.frost ? ` (F${escapeHtml(d.frost)})` : ''
+        const vol = escapeHtml(d && d.vol !== undefined ? d.vol : '—')
+        const price = isFinite(Number(d && d.price)) ? formatRubles(d.price) : escapeHtml(d && d.price)
+        const cost = isFinite(Number(d && d.cost)) ? formatRubles(d.cost) : escapeHtml(d && d.cost)
+        return `
+          <tr>
+            <td style="padding:10px 12px;border-top:1px solid #e5e7eb;color:#111827;text-align:right;white-space:nowrap;">${idx + 1}</td>
+            <td style="padding:10px 12px;border-top:1px solid #e5e7eb;color:#111827;">${type}</td>
+            <td style="padding:10px 12px;border-top:1px solid #e5e7eb;color:#111827;">${mark}${frost}</td>
+            <td style="padding:10px 12px;border-top:1px solid #e5e7eb;color:#111827;text-align:right;white-space:nowrap;">${vol}</td>
+            <td style="padding:10px 12px;border-top:1px solid #e5e7eb;color:#111827;text-align:right;white-space:nowrap;">${escapeHtml(price)}/м³</td>
+            <td style="padding:10px 12px;border-top:1px solid #e5e7eb;color:#111827;text-align:right;white-space:nowrap;font-weight:600;">${escapeHtml(cost)}</td>
+          </tr>
+        `.trim()
+      }).join('')
+    : `
+        <tr>
+          <td colspan="6" style="padding:12px;border-top:1px solid #e5e7eb;color:#6b7280;">Нет позиций (проверьте данные заказа)</td>
+        </tr>
+      `.trim()
+
+  const deliveryLabel = (km !== undefined && km !== null && String(km).trim() !== '')
+    ? `Доставка (${escapeHtml(km)} км)`
+    : 'Доставка'
+
+  const totalsHtml = `
+    <table role="presentation" style="width:100%;border-collapse:collapse;margin-top:16px;">
+      <tr>
+        <td style="padding:8px 0;color:#374151;">Материал</td>
+        <td style="padding:8px 0;color:#111827;text-align:right;font-weight:600;">${escapeHtml(formatRubles(materialTotal))}</td>
+      </tr>
+      <tr>
+        <td style="padding:8px 0;color:#374151;">${deliveryLabel}</td>
+        <td style="padding:8px 0;color:#111827;text-align:right;font-weight:600;">${escapeHtml(formatRubles(delivery))}</td>
+      </tr>
+      <tr>
+        <td style="padding:12px 0;color:#111827;font-size:16px;font-weight:700;border-top:1px solid #e5e7eb;">Итог</td>
+        <td style="padding:12px 0;color:#111827;font-size:16px;text-align:right;font-weight:800;border-top:1px solid #e5e7eb;">${escapeHtml(formatRubles(total))}</td>
+      </tr>
+    </table>
+  `.trim()
+
+  const html = `
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>Новый заказ</title>
+  </head>
+  <body style="margin:0;padding:0;background:#f6f7fb;">
+    <div style="max-width:720px;margin:0 auto;padding:24px 12px;">
+      <div style="background:#ffffff;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;box-shadow:0 8px 24px rgba(17,24,39,0.08);">
+        <div style="padding:18px 22px;background:#111827;color:#ffffff;">
+          <div style="font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;letter-spacing:0.2px;font-size:18px;font-weight:800;">Новый заказ с сайта</div>
+          <div style="margin-top:6px;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;font-size:12px;color:#cbd5e1;">Получено: ${escapeHtml(prettyNow)}</div>
+        </div>
+
+        <div style="padding:22px;">
+          <div style="font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;color:#111827;font-size:14px;line-height:1.5;">
+            <div style="margin:0 0 12px 0;color:#374151;">Состав заказа:</div>
+
+            <table role="table" style="width:100%;border-collapse:collapse;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;">
+              <thead>
+                <tr>
+                  <th style="padding:10px 12px;background:#f3f4f6;color:#374151;font-size:12px;text-align:right;white-space:nowrap;">№</th>
+                  <th style="padding:10px 12px;background:#f3f4f6;color:#374151;font-size:12px;text-align:left;">Тип</th>
+                  <th style="padding:10px 12px;background:#f3f4f6;color:#374151;font-size:12px;text-align:left;">Класс/марка</th>
+                  <th style="padding:10px 12px;background:#f3f4f6;color:#374151;font-size:12px;text-align:right;white-space:nowrap;">Объём (м³)</th>
+                  <th style="padding:10px 12px;background:#f3f4f6;color:#374151;font-size:12px;text-align:right;white-space:nowrap;">Цена</th>
+                  <th style="padding:10px 12px;background:#f3f4f6;color:#374151;font-size:12px;text-align:right;white-space:nowrap;">Стоимость</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rowsHtml}
+              </tbody>
+            </table>
+
+            ${totalsHtml}
+
+            <div style="margin-top:18px;padding:14px 16px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;">
+              <div style="font-weight:800;margin-bottom:8px;">Контакты покупателя</div>
+              <div style="color:#374151;">
+                <div style="margin:4px 0;"><span style="color:#6b7280;">Покупатель:</span> ${escapeHtml(buyerName || '—')}</div>
+                <div style="margin:4px 0;"><span style="color:#6b7280;">Телефон:</span> ${escapeHtml(buyerPhone || '—')}</div>
+                <div style="margin:4px 0;"><span style="color:#6b7280;">Email:</span> ${buyerEmail ? `<a href="mailto:${escapeHtml(buyerEmail)}" style="color:#2563eb;text-decoration:none;">${escapeHtml(buyerEmail)}</a>` : '—'}</div>
+              </div>
+            </div>
+
+            <div style="margin-top:14px;color:#6b7280;font-size:12px;">
+              IP: ${escapeHtml(ip || '—')}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:10px;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;font-size:12px;color:#94a3b8;text-align:center;">
+        Это автоматическое письмо с сайта. Если нужно ответить покупателю — используйте Reply.
+      </div>
+    </div>
+  </body>
+</html>
+  `.trim()
+
+  const text = `Получен заказ (${prettyNow})\n\n${markdown || ''}\n\nIP: ${ip || '—'}`
+
+  return { subject, html, text, replyTo: buyerEmail }
+}
+
+function buildContactEmail({ now, name, phone, email, title, message, ip }) {
+  const prettyNow = formatDateTimeRu(now)
+  const subject = title ? `Заявка с сайта — ${title}` : `Заявка с сайта — ${prettyNow}`
+
+  const html = `
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Заявка с сайта</title>
+  </head>
+  <body style="margin:0;padding:0;background:#f6f7fb;">
+    <div style="max-width:720px;margin:0 auto;padding:24px 12px;">
+      <div style="background:#ffffff;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;box-shadow:0 8px 24px rgba(17,24,39,0.08);">
+        <div style="padding:18px 22px;background:#0f172a;color:#ffffff;">
+          <div style="font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;font-size:18px;font-weight:800;">Новая заявка с сайта</div>
+          <div style="margin-top:6px;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;font-size:12px;color:#cbd5e1;">Получено: ${escapeHtml(prettyNow)}</div>
+        </div>
+        <div style="padding:22px;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;color:#111827;font-size:14px;line-height:1.5;">
+          <div style="padding:14px 16px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;">
+            <div style="margin:4px 0;"><span style="color:#6b7280;">Имя:</span> ${escapeHtml(name || '—')}</div>
+            <div style="margin:4px 0;"><span style="color:#6b7280;">Телефон:</span> ${escapeHtml(phone || '—')}</div>
+            <div style="margin:4px 0;"><span style="color:#6b7280;">Email:</span> ${email ? `<a href="mailto:${escapeHtml(email)}" style="color:#2563eb;text-decoration:none;">${escapeHtml(email)}</a>` : '—'}</div>
+            <div style="margin:4px 0;"><span style="color:#6b7280;">Тема:</span> ${escapeHtml(title || '—')}</div>
+          </div>
+
+          <div style="margin-top:14px;font-weight:800;">Сообщение</div>
+          <div style="margin-top:8px;padding:14px 16px;background:#ffffff;border:1px solid #e5e7eb;border-radius:12px;white-space:pre-wrap;">${escapeHtml(message || '')}</div>
+
+          <div style="margin-top:14px;color:#6b7280;font-size:12px;">IP: ${escapeHtml(ip || '—')}</div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+  `.trim()
+
+  const text = `Получено письмо с сайта\n\nВремя: ${prettyNow}\nИмя: ${name || '—'}\nТелефон: ${phone || '—'}\nEmail: ${email || '—'}\nТема: ${title || '—'}\n\nСообщение:\n${message || ''}\n\nIP: ${ip || '—'}`
+  return { subject, html, text, replyTo: email ? String(email).trim() : '' }
+}
+
+function getEnvelopeFromEnv() {
+  const toEmail = (process.env.TO_EMAIL || '').trim()
+  const fromEmail = (process.env.FROM_EMAIL || '').trim()
+  const fromName = (process.env.FROM_NAME || 'Site').trim()
+  return { toEmail, fromEmail, fromName }
+}
+
+function resendRequest(apiKey, payload) {
+  return new Promise((resolve, reject) => {
+    const body = Buffer.from(JSON.stringify(payload), 'utf8')
+    const req = https.request(
+      {
+        method: 'POST',
+        hostname: 'api.resend.com',
+        path: '/emails',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+          'Content-Length': body.length,
+        },
+        timeout: 15_000,
+      },
+      (resp) => {
+        let chunks = ''
+        resp.setEncoding('utf8')
+        resp.on('data', (d) => { chunks += d })
+        resp.on('end', () => {
+          const status = resp.statusCode || 0
+          let parsed = null
+          try { parsed = chunks ? JSON.parse(chunks) : null } catch (_) {}
+          if (status >= 200 && status < 300) {
+            resolve({ ok: true, status, data: parsed })
+          } else {
+            const err = new Error(parsed && parsed.message ? parsed.message : (chunks || `HTTP ${status}`))
+            err.statusCode = status
+            err.responseBody = chunks
+            reject(err)
+          }
+        })
       }
-      console.warn('SMTP: verify failed:', lastSmtpVerify.error)
-    })
-} else {
-  console.warn('SMTP: disabled (set SMTP_HOST, SMTP_USER, SMTP_PASS in server/.env)')
-}
-
-function tcpProbe(host, port, timeoutMs = 3000) {
-  return new Promise((resolve) => {
-    const socket = net.connect({ host, port })
-    let done = false
-    const finish = (res) => {
-      if (done) return
-      done = true
-      try { socket.destroy() } catch (_) {}
-      resolve(res)
-    }
-    socket.setTimeout(timeoutMs)
-    socket.on('connect', () => finish({ ok: true }))
-    socket.on('timeout', () => finish({ ok: false, error: 'timeout' }))
-    socket.on('error', (err) => finish({ ok: false, error: err && err.message ? err.message : String(err) }))
+    )
+    req.on('timeout', () => req.destroy(new Error('Request timeout')))
+    req.on('error', reject)
+    req.write(body)
+    req.end()
   })
 }
+
+async function sendEmail({ subject, text, html, replyTo }) {
+  const { toEmail, fromEmail, fromName } = getEnvelopeFromEnv()
+
+  if (!toEmail || !fromEmail) {
+    const err = new Error('Email is not configured (set TO_EMAIL and FROM_EMAIL in .env)')
+    err.code = 'CONFIG'
+    throw err
+  }
+
+  if (EMAIL_PROVIDER !== 'resend') {
+    const err = new Error(`Unsupported EMAIL_PROVIDER: ${EMAIL_PROVIDER}. Use EMAIL_PROVIDER=resend.`)
+    err.code = 'CONFIG'
+    throw err
+  }
+
+  const apiKey = String(process.env.RESEND_API_KEY || '').trim()
+  if (!apiKey) {
+    const err = new Error('Resend is not configured (set RESEND_API_KEY in .env)')
+    err.code = 'CONFIG'
+    throw err
+  }
+
+  const payload = {
+    from: `${fromName} <${fromEmail}>`,
+    to: [toEmail],
+    subject,
+    text,
+    ...(html ? { html } : {}),
+    ...(replyTo ? { reply_to: replyTo } : {}),
+  }
+
+  return resendRequest(apiKey, payload)
+}
+
+function classifyEmailError(err) {
+  const message = (err && err.message) ? String(err.message) : String(err || '')
+  const code = (err && (err.code || err.errno)) ? String(err.code || err.errno) : ''
+  const statusCode = (err && err.statusCode) ? err.statusCode : null
+  const msg = message.toLowerCase()
+
+  let hint = null
+  if (code === 'CONFIG') {
+    hint = 'Проверьте переменные окружения: EMAIL_PROVIDER, RESEND_API_KEY, TO_EMAIL, FROM_EMAIL.'
+  } else if (statusCode === 401 || msg.includes('unauthorized') || msg.includes('invalid api key')) {
+    hint = 'Неверный RESEND_API_KEY или ключ не активен.'
+  } else if (statusCode === 403 || msg.includes('forbidden')) {
+    hint = 'Запрещён отправитель FROM_EMAIL: для Resend нужен верифицированный домен. Для теста используйте onboarding@resend.dev.'
+  }
+
+  return { message, code: code || null, statusCode, hint }
+}
+
+// Startup info (no secrets)
+console.log(`ENV: ${loadedEnvPath ? `loaded from ${loadedEnvPath}` : 'no .env found (using process env only)'}`)
+console.log(`Server: http://localhost:${PORT}`)
+console.log(
+  'Email config:',
+  JSON.stringify({
+    provider: EMAIL_PROVIDER,
+    resendApiKey: (process.env.RESEND_API_KEY || '').trim() ? 'set' : 'missing',
+    toEmail: (process.env.TO_EMAIL || '').trim() ? 'set' : 'missing',
+    fromEmail: (process.env.FROM_EMAIL || '').trim() ? 'set' : 'missing'
+  })
+)
 
 app.get('/api/email/status', async (req, res) => {
-  const host = (process.env.SMTP_HOST || '').trim()
-  const port = parseInt(process.env.SMTP_PORT || '0', 10)
-  const toEmail = (process.env.TO_EMAIL || '').trim()
-  const fromEmail = (process.env.FROM_EMAIL || process.env.SMTP_USER || '').trim()
-  const enabled = Boolean(transporter && host && port && toEmail && fromEmail)
-  const probe = (host && port) ? await tcpProbe(host, port, 2500) : { ok: false, error: 'missing host/port' }
+  const { toEmail, fromEmail, fromName } = getEnvelopeFromEnv()
+  const apiKeySet = Boolean(String(process.env.RESEND_API_KEY || '').trim())
+  const enabled = Boolean(EMAIL_PROVIDER === 'resend' && apiKeySet && toEmail && fromEmail)
+  const hint = enabled
+    ? null
+    : 'Email API не настроен. Укажите EMAIL_PROVIDER=resend, RESEND_API_KEY, TO_EMAIL, FROM_EMAIL. Для быстрого теста можно поставить FROM_EMAIL=onboarding@resend.dev.'
+
   res.json({
     enabled,
-    smtp: { host, port },
-    envelope: { toEmail, fromEmail },
-    lastVerify: lastSmtpVerify,
-    tcp: probe
+    provider: EMAIL_PROVIDER,
+    envelope: { toEmail, fromEmail, fromName },
+    providerConfig: {
+      resend: { apiKey: apiKeySet ? 'set' : 'missing' }
+    },
+    hint
   })
 })
 
 app.post('/api/email/test', async (req, res) => {
-  const toEmail = (process.env.TO_EMAIL || '').trim()
-  const fromName = (process.env.FROM_NAME || 'Site').trim()
-  const fromAddr = (process.env.FROM_EMAIL || process.env.SMTP_USER || '').trim()
-  if (!transporter || !toEmail || !fromAddr) {
-    return res.status(500).json({ ok: false, error: 'SMTP is not configured (check server/.env)' })
-  }
   try {
     const now = new Date().toISOString()
-    await transporter.sendMail({
-      from: `${fromName} <${fromAddr}>`,
-      to: toEmail,
-      subject: `SMTP test — ${now}`,
-      text: `SMTP test OK. Time: ${now}`
+    await sendEmail({
+      subject: `Email test — ${now}`,
+      text: `Email test OK. Time: ${now}`,
+      html: `<div style="font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;">Email test OK.<br/>Time: ${escapeHtml(formatDateTimeRu(now))}</div>`
     })
     res.json({ ok: true })
   } catch (err) {
-    res.status(500).json({ ok: false, error: err && err.message ? err.message : String(err) })
+    const info = classifyEmailError(err)
+    res.status(500).json({ ok: false, error: info.message, code: info.code, statusCode: info.statusCode, hint: info.hint })
   }
 })
 
@@ -156,43 +414,30 @@ app.post('/api/order', async (req, res) => {
     fs.writeFileSync(ordersFile, JSON.stringify(arr, null, 2), 'utf8')
     console.log('Order received:', payload)
 
-    // Try to send email if transporter available and TO_EMAIL is set
-    const toEmail = (process.env.TO_EMAIL || '').trim()
-    const fromName = (process.env.FROM_NAME || 'Site').trim()
-    const fromAddr = (process.env.FROM_EMAIL || process.env.SMTP_USER || '').trim()
-
     const md = (req.body && req.body.markdown)
-      ? req.body.markdown
+      ? String(req.body.markdown)
       : JSON.stringify(req.body.order || req.body, null, 2)
 
-    const subject = `Новый заказ с сайта — ${now}`
-    const text = `Получен заказ:\n\n${md}`
-
-    const replyTo = (req.body && req.body.order && req.body.order.buyerEmail)
-      ? String(req.body.order.buyerEmail).trim()
-      : ''
+    const built = buildOrderEmail({
+      now,
+      order: (req.body && req.body.order) ? req.body.order : null,
+      markdown: md,
+      ip: req.ip,
+    })
 
     let email = { attempted: false, sent: false }
-    if (transporter && toEmail && fromAddr) {
-      email.attempted = true
-      try {
-        await transporter.sendMail({
-          from: `${fromName} <${fromAddr}>`,
-          to: toEmail,
-          subject,
-          text,
-          ...(replyTo ? { replyTo } : {})
-        })
-        email.sent = true
-        console.log('Order email sent to', toEmail)
-      } catch (mailErr) {
-        email.error = mailErr && mailErr.message ? mailErr.message : String(mailErr)
-        console.error('Failed to send order email', mailErr)
-      }
-    } else {
-      if (!transporter) console.warn('SMTP: transporter not configured — skipping email')
-      if (!toEmail) console.warn('SMTP: TO_EMAIL not set — skipping email')
-      if (!fromAddr) console.warn('SMTP: FROM_EMAIL/SMTP_USER not set — skipping email')
+    email.attempted = true
+    try {
+      await sendEmail({ subject: built.subject, text: built.text, html: built.html, replyTo: built.replyTo })
+      email.sent = true
+      console.log('Order email sent')
+    } catch (mailErr) {
+      const info = classifyEmailError(mailErr)
+      email.error = info.message
+      email.code = info.code
+      email.statusCode = info.statusCode
+      email.hint = info.hint
+      console.error('Failed to send order email', mailErr)
     }
 
     res.json({ ok: true, email })
@@ -266,33 +511,31 @@ app.post('/sendform', async (req, res) => {
     console.error('Failed to persist contact message', persistErr)
   }
 
-  const toEmail = (process.env.TO_EMAIL || '').trim()
-  const fromName = (process.env.FROM_NAME || 'Site').trim()
-  const fromAddr = (process.env.FROM_EMAIL || process.env.SMTP_USER || '').trim()
-  if (!transporter || !toEmail || !fromAddr) {
-    return res.status(500).json({ ok: false, error: 'SMTP is not configured (check server/.env)' })
-  }
-
   const now = new Date().toISOString()
-  const subject = title ? `Заявка с сайта — ${title}` : `Заявка с сайта — ${now}`
-  const text = `Получено письмо с сайта\n\nВремя: ${now}\nИмя: ${name || '—'}\nТелефон: ${phone || '—'}\nEmail: ${email || '—'}\nТема: ${title || '—'}\n\nСообщение:\n${message}\n\nIP: ${req.ip}`
+  const built = buildContactEmail({
+    now,
+    name,
+    phone,
+    email,
+    title,
+    message,
+    ip: req.ip,
+  })
 
   try {
-    await transporter.sendMail({
-      from: `${fromName} <${fromAddr}>`,
-      to: toEmail,
-      subject,
-      text,
-      ...(email ? { replyTo: email } : {})
-    })
-    console.log('Form email sent to', toEmail)
+    await sendEmail({ subject: built.subject, text: built.text, html: built.html, replyTo: built.replyTo })
+    console.log('Form email sent')
     res.status(200).json({ ok: true })
   } catch (error) {
     console.error('Failed to send form email:', error)
+    const info = classifyEmailError(error)
     // Still return ok=false but mention that message is saved locally
     res.status(500).json({
       ok: false,
-      error: error && error.message ? error.message : 'Failed to send email',
+      error: info.message,
+      code: info.code,
+      statusCode: info.statusCode,
+      hint: info.hint,
       saved: true
     })
   }

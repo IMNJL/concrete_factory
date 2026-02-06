@@ -98,8 +98,8 @@
           </div>
         </div>
 
-        <label for="deliveryKm" style="margin-top:12px">Доставка — расстояние (км) (пример: 10)</label>
-        <input id="deliveryKm" type="number" min="0" step="1" value="5">
+        <label for="deliveryKm" style="margin-top:12px">Доставка — примерное расстояние (км)</label>
+        <input id="deliveryKm" type="number" min="0" step="1" value="5" placeholder="например: 10" inputmode="decimal">
 
         <div style="display:flex;gap:8px;margin-top:12px">
           <button id="calcBtn" class="button">Рассчитать</button>
@@ -135,7 +135,7 @@
         <input id="buyerEmail" name="buyerEmail" type="email" placeholder="client@example.com" autocomplete="email" required />
 
         <div style="display:flex;gap:8px;margin-top:12px">
-          <button id="submitOrder" class="button">Отправить заказ</button>
+          <button id="submitOrder" class="button" type="button">Отправить заказ</button>
           <div id="submitStatus" class="small" style="align-self:center">—</div>
         </div>
       </div>
