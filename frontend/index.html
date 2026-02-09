@@ -12,9 +12,9 @@
   <header class="site-header" style="background-image: url('assets/documents/background.jpg'); background-size: cover; background-position: center;">
     <div class="header-top">
       <div class="logo">
-        <img src="assets/logos/logo.png" alt="БРУ Кременкуль">
+        <img src="assets/logos/logo.png" alt="ПК Бетон">
         <div>
-          <div style="font-weight:800">Бетонный завод "Кременкуль"</div>
+          <div style="font-weight:800">ПК «Бетон»</div>
         </div>
       </div>
 
@@ -24,17 +24,11 @@
       </div>
 
       <div class="header-contact-block">
-        <a class="header-phone" href="tel:+79123146115">8-912-314-61-15</a>
+        <a class="header-phone" id="headerPhoneLink" href="#">—</a>
         <div class="header-city">г. Челябинск</div>
         <div class="header-messengers" aria-label="Связь в мессенджерах">
-          <a class="messenger" href="https://wa.me/79123146115" target="_blank" rel="noopener" aria-label="WhatsApp">
-            <img src="assets/icons/whatsapp.svg" alt="WhatsApp" width="28" height="28" loading="lazy">
-          </a>
-          <a class="messenger" href="viber://chat?number=79123146115" target="_blank" rel="noopener" aria-label="Telegram">
+          <a class="messenger" id="headerTelegramLink" href="#" target="_blank" rel="noopener" aria-label="Telegram">
             <img src="assets/icons/telegram.svg" alt="Telegram" width="28" height="28" loading="lazy">
-          </a>
-          <a class="messenger" href="https://vk.com/" target="_blank" rel="noopener" aria-label="VK">
-            <img src="assets/icons/vk.svg" alt="VK" width="28" height="28" loading="lazy">
           </a>
         </div>
       </div>
@@ -71,11 +65,11 @@
       <aside class="card">
         <h3>Контакты</h3>
         <div class="small">Телефон</div>
-        <div style="font-weight:800;margin-bottom:8px">8-912-314-61-15</div>
+        <div id="topCompanyPhone" style="font-weight:800;margin-bottom:8px">—</div>
         <div class="small">Адрес</div>
-        <a href="https://yandex.ru/maps/-/CPEW44MJ" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">454047, г. Челябинск, ул. Павелецкая 2-ая, 18, офис 117</a>
+        <a id="topCompanyAddressLink" href="#" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">—</a>
         <div style="margin-top:12px" class="small">Реквизиты</div>
-        <div class="small">ООО «БРУ Кременкуль» ИНН 7460011413</div>
+        <div id="topCompanyRequisites" class="small">—</div>
       </aside>
     </section>
 
@@ -179,7 +173,7 @@
           <h3>Сертификаты и файлы</h3>
           <div class="cert-list">
             <a href="assets/documents/%D0%9A%D0%B0%D1%80%D1%82%D0%B0%20%D0%9F%D0%9A%20%D0%91%D0%B5%D1%82%D0%BE%D0%BD%20%D1%81%D0%BA%D0%B0%D0%BD%20.jpg" target="_blank" rel="noopener">Карточка предприятия (скан, JPG)</a>
-            <a href="assets/documents/BRU_presentation.pdf" target="_blank" rel="noopener">Презентация БРУ (PDF)</a>
+            <a href="assets/documents/BRU_presentation.pdf" target="_blank" rel="noopener">Презентация ПК «Бетон» (PDF)</a>
             <a href="assets/documents/Technolog.pdf" target="_blank" rel="noopener">Страница технолога (PDF)</a>
           </div>
         </div>
@@ -191,20 +185,23 @@
       <div class="grid-3">
         <div>
           <h4>Адрес</h4>
-          <div>г. Челябинск, ул. Павелецкая 2-ая, 18</div>
+          <div id="companyAddress">—</div>
           <h4 style="margin-top:10px">Телефон</h4>
-          <div>8-912-314-61-15</div>
+          <div class="contact-values" style="margin-top:4px">
+            <a id="companyPhoneLink" href="#">—</a>
+          </div>
 
           <div id="mainContactsExtra" style="margin-top:10px"></div>
         </div>
         <div>
           <h4>Реквизиты</h4>
-          <div class="small">ООО «БРУ Кременкуль»<br>ИНН 7460011413</div>
+          <div id="companyRequisites" class="small">—</div>
         </div>
         <div>
           <h4>Локация (Офис)</h4>
+          <!-- 55.169524, 61.131730 -->
           <!-- Yandex.Maps: 2-nd Paveletskaya street, 18 (lon=61.412363, lat=55.265091) -->
-          <iframe id="mapFrame" src="https://yandex.ru/map-widget/v1/?ll=61.412363%2C55.265091&z=16&pt=61.412363%2C55.265091%2Cpm2rdm" style="width:100%;height:160px;border:0;border-radius:8px"></iframe>
+          <iframe id="mapFrame" src="https://yandex.ru/map-widget/v1/?ll=61.131730%2C55.169524&z=16&pt=61.131730%2C55.169524%2Cpm2rdm" style="width:100%;height:160px;border:0;border-radius:8px"></iframe>
         </div>
       </div>
 

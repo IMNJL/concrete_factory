@@ -5,12 +5,25 @@
   --accent-color: #00A4EF; /* Lighter blue */
   --background-color: #F3F9FF; /* Light background */
   --text-color: #333333; /* Neutral text */
+  --accent-dark: var(--text-color);
   --container-max: 1240px;
   --header-offset: 175px;
   --card: #ffffff;
   --muted: #5b6777;
   --accent: var(--accent-color);
   --ring: rgba(0, 164, 239, 0.35);
+}
+
+/* Company requisites formatting (rendered by JS) */
+.company-requisites-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  line-height: 1.35;
+}
+
+.company-requisites-lines .req-line {
+  line-height: 1.35;
 }
 
 @font-face {

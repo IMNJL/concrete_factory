@@ -120,6 +120,104 @@ document.addEventListener('DOMContentLoaded', ()=>{
     return concretePriceInfoPromise
   }
 
+  let companyInfoPromise = null
+  function loadCompanyInfo(){
+    if(companyInfoPromise) return companyInfoPromise
+    companyInfoPromise = fetch('assets/companyInfo.json')
+      .then(r=> r.ok ? r.json() : null)
+      .catch(()=>null)
+    return companyInfoPromise
+  }
+
+  function phoneDigits(phone){
+    return String(phone || '').replace(/\D/g, '')
+  }
+
+  function viberNumber(phone){
+    const digits = phoneDigits(phone)
+    if(digits.length === 11 && digits.startsWith('8')) return `7${digits.slice(1)}`
+    if(digits.length === 11 && digits.startsWith('7')) return digits
+    return digits
+  }
+
+  function telegramPhoneUrl(phone){
+    const digits = viberNumber(phone)
+    return digits ? `https://t.me/+${digits}` : '#'
+  }
+
+  function yandexMapsAddressUrl(address){
+    const a = String(address || '').trim()
+    if(!a) return '#'
+    return `https://yandex.ru/maps/?text=${encodeURIComponent(a)}`
+  }
+
+  function renderCompanyRequisitesHtml(company){
+    if(!company) return ''
+    const lines = []
+    const name = company.shortName || company.name || company.fullName
+    if(name) lines.push(escapeHtml(name))
+    if(company.inn) lines.push(`ИНН: ${escapeHtml(company.inn)}`)
+    if(company.bankAccount) lines.push(`Расчётный счёт: ${escapeHtml(company.bankAccount)}`)
+    if(company.correspondentAccount) lines.push(`Корреспондентский счёт: ${escapeHtml(company.correspondentAccount)}`)
+    if(company.bik) lines.push(`БИК: ${escapeHtml(company.bik)}`)
+    if(company.bankName) lines.push(`Банк: ${escapeHtml(company.bankName)}`)
+
+    if(lines.length === 0) return ''
+    return `<div class="company-requisites-lines">${lines.map(l=>`<div class=\"req-line\">${l}</div>`).join('')}</div>`
+  }
+
+  function renderCompanyRequisitesShortHtml(company){
+    if(!company) return ''
+    const lines = []
+    const name = company.shortName || company.name || company.fullName
+    if(name) lines.push(escapeHtml(name))
+    if(company.inn) lines.push(`ИНН: ${escapeHtml(company.inn)}`)
+    if(lines.length === 0) return ''
+    return `<div class="company-requisites-lines">${lines.map(l=>`<div class=\"req-line\">${l}</div>`).join('')}</div>`
+  }
+
+  function renderCompanyContactsOnMainPage(company){
+    if(!company) return
+
+    const address = company.address || company.legalAddress || company.postalAddress || ''
+    const phone = company.phone || ''
+
+    // Header phone
+    const headerPhoneLink = document.getElementById('headerPhoneLink')
+    if(headerPhoneLink){
+      headerPhoneLink.textContent = phone || '—'
+      const d = phoneDigits(phone)
+      headerPhoneLink.href = d ? `tel:${d}` : '#'
+    }
+    const headerTelegramLink = document.getElementById('headerTelegramLink') || document.getElementById('headerViberLink')
+    if(headerTelegramLink){
+      headerTelegramLink.href = telegramPhoneUrl(phone)
+    }
+
+    // Top card (hero)
+    const topPhone = document.getElementById('topCompanyPhone')
+    if(topPhone) topPhone.textContent = phone || '—'
+    const topAddrLink = document.getElementById('topCompanyAddressLink')
+    if(topAddrLink){
+      topAddrLink.textContent = address || '—'
+      topAddrLink.href = address ? yandexMapsAddressUrl(address) : '#'
+    }
+    const topReq = document.getElementById('topCompanyRequisites')
+    if(topReq) topReq.innerHTML = renderCompanyRequisitesShortHtml(company) || '—'
+
+    // Contacts section
+    const addrEl = document.getElementById('companyAddress')
+    if(addrEl) addrEl.textContent = address || '—'
+    const phoneLink = document.getElementById('companyPhoneLink')
+    if(phoneLink){
+      phoneLink.textContent = phone || '—'
+      const d = phoneDigits(phone)
+      phoneLink.href = d ? `tel:${d}` : '#'
+    }
+    const reqEl = document.getElementById('companyRequisites')
+    if(reqEl) reqEl.innerHTML = renderCompanyRequisitesHtml(company) || '—'
+  }
+
   // --- Price catalog for calculator (type -> class/mark) ---
   let priceCatalog = null
   let priceCatalogPromise = null
@@ -1062,6 +1160,13 @@ document.addEventListener('DOMContentLoaded', ()=>{
   if(mainContactsExtra){
     loadConcretePriceInfo().then(data=>{
       if(data) renderMainExtraContacts(data, mainContactsExtra)
+    })
+  }
+
+  // Main page: company card (phone/address/requisites) from one JSON
+  if(document.getElementById('companyRequisites') || document.getElementById('topCompanyRequisites') || document.getElementById('headerPhoneLink')){
+    loadCompanyInfo().then(company=>{
+      if(company) renderCompanyContactsOnMainPage(company)
     })
   }
 });

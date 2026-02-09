@@ -129,6 +129,7 @@ function formatDateTimeRu(isoOrDate) {
   if (!isFinite(d.getTime())) return String(isoOrDate || '')
   try {
     return new Intl.DateTimeFormat('ru-RU', {
+      timeZone: 'Europe/Moscow',
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
@@ -447,10 +448,11 @@ app.get('/api/email/status', async (req, res) => {
 app.post('/api/email/test', async (req, res) => {
   try {
     const now = new Date().toISOString()
+    const prettyNow = formatDateTimeRu(now)
     await sendEmail({
-      subject: `Email test — ${now}`,
-      text: `Email test OK. Time: ${now}`,
-      html: `<div style="font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;">Email test OK.<br/>Time: ${escapeHtml(formatDateTimeRu(now))}</div>`
+      subject: `Email test — ${prettyNow} (МСК)`,
+      text: `Email test OK. Time (MSK): ${prettyNow}\nISO: ${now}`,
+      html: `<div style="font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;">Email test OK.<br/>Time (MSK): ${escapeHtml(prettyNow)}<br/>ISO: ${escapeHtml(now)}</div>`
     })
     res.json({ ok: true })
   } catch (err) {
