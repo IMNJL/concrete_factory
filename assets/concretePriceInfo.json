@@ -7,14 +7,14 @@
   },
   "contacts": {
     "salesPhone": "8-912-891-57-44",
-    "salesLabel": "Отдел продаж",
+    "salesLabel": "Отдел продаж: ",
     "dispatcherPhone": "8-919-123-51-79",
     "dispatcherEmail": "pkbeton@list.ru",
     "labContact": "Наталья",
     "labPhone": "8-908-040-22-55",
     "additionalPhones": [
       {
-        "name": "Отдел продаж",
+        "name": "Отдел продаж ",
         "phones": ["8-912-891-57-44", "8-919-123-22-75"],
         "note": "звонить с 9-18"
       }
