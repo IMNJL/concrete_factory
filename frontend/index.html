@@ -12,6 +12,9 @@
   <header class="site-header" style="background-image: url('assets/documents/background.jpg'); background-size: cover; background-position: center;">
     <div class="header-top">
       <div class="logo">
+        <button class="menu-btn" id="menuBtn" type="button" aria-label="Меню" aria-controls="mobileMenuOverlay" aria-expanded="false">
+          <span class="menu-icon" aria-hidden="true"></span>
+        </button>
         <img src="assets/logos/logo.png" alt="ПК Бетон">
         <div>
           <div style="font-weight:800">ПК «Бетон»</div>
@@ -35,13 +38,33 @@
     </div>
 
     <nav class="header-nav" aria-label="Навигация">
-      <a href="#home">Главная</a>
-      <a href="#prices">Прайс</a>
-      <a href="#calculator">Калькулятор</a>
-      <a href="about.html">О заводе</a>
-      <a href="#tech">Технолог</a>
-      <a href="#contacts">Контакты</a>
+      <div class="header-nav-inner">
+        <a href="#home">Главная</a>
+        <a href="#prices">Прайс</a>
+        <a href="#calculator">Калькулятор</a>
+        <a href="about.html">О заводе</a>
+        <a href="#tech">Технолог</a>
+        <a href="#contacts">Контакты</a>
+      </div>
     </nav>
+
+    <!-- Mobile menu overlay -->
+    <div class="mobile-menu-overlay" id="mobileMenuOverlay" hidden>
+      <div class="mobile-menu" role="dialog" aria-modal="true" aria-label="Меню">
+        <div class="mobile-menu-header">
+          <div class="mobile-menu-title">Меню</div>
+          <button class="mobile-menu-close" id="menuCloseBtn" type="button" aria-label="Закрыть меню">✕</button>
+        </div>
+        <div class="mobile-menu-links" id="mobileMenuLinks">
+          <a href="#home">Главная</a>
+          <a href="#prices">Прайс</a>
+          <a href="#calculator">Калькулятор</a>
+          <a href="about.html">О заводе</a>
+          <a href="#tech">Технолог</a>
+          <a href="#contacts">Контакты</a>
+        </div>
+      </div>
+    </div>
   </header>
 
   <main>

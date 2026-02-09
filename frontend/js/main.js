@@ -104,6 +104,59 @@ document.addEventListener('DOMContentLoaded', ()=>{
       .replace(/'/g, '&#039;')
   }
 
+  // --- Mobile menu (burger) ---
+  function initMobileMenu(){
+    const menuBtn = document.getElementById('menuBtn')
+    const overlay = document.getElementById('mobileMenuOverlay')
+    const closeBtn = document.getElementById('menuCloseBtn')
+    const links = document.getElementById('mobileMenuLinks')
+    if(!menuBtn || !overlay) return
+
+    function openMenu(){
+      overlay.hidden = false
+      // allow CSS transition
+      requestAnimationFrame(()=> overlay.classList.add('is-open'))
+      menuBtn.setAttribute('aria-expanded', 'true')
+      document.body.style.overflow = 'hidden'
+    }
+
+    function closeMenu(){
+      overlay.classList.remove('is-open')
+      menuBtn.setAttribute('aria-expanded', 'false')
+      document.body.style.overflow = ''
+      // wait for transition before hiding
+      window.setTimeout(()=>{
+        overlay.hidden = true
+      }, 200)
+    }
+
+    menuBtn.addEventListener('click', ()=>{
+      const expanded = menuBtn.getAttribute('aria-expanded') === 'true'
+      if(expanded) closeMenu()
+      else openMenu()
+    })
+
+    if(closeBtn) closeBtn.addEventListener('click', closeMenu)
+
+    // close on backdrop click
+    overlay.addEventListener('click', (e)=>{
+      if(e.target === overlay) closeMenu()
+    })
+
+    // close when selecting link
+    if(links){
+      links.addEventListener('click', (e)=>{
+        const a = e.target && e.target.closest ? e.target.closest('a') : null
+        if(a) closeMenu()
+      })
+    }
+
+    // close on ESC
+    document.addEventListener('keydown', (e)=>{
+      if(e.key === 'Escape' && !overlay.hidden) closeMenu()
+    })
+  }
+
   function formatRubles(n){
     if(n === null || n === undefined || n === '') return ''
     const num = Number(n)
@@ -1142,6 +1195,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
   }
 
   // --- Init ---
+  initMobileMenu()
   renderPriceTable()
   loadPriceCatalog().then(()=>hydrateAllTypeRows())
   ensureInitialType()
