@@ -1,5 +1,33 @@
 // Main app script: handles types list, calculator, admin UI and order submission
 document.addEventListener('DOMContentLoaded', ()=>{
+  // --- Mobile navigation drawer ---
+  const navToggle = document.getElementById('navToggle')
+  const navDrawer = document.getElementById('mobileNav')
+  const navBackdrop = document.getElementById('navBackdrop')
+  const navClose = document.getElementById('navClose')
+
+  function setNavOpen(open){
+    if(!navDrawer || !navBackdrop || !navToggle) return
+    navDrawer.classList.toggle('is-open', Boolean(open))
+    navDrawer.setAttribute('aria-hidden', open ? 'false' : 'true')
+    navBackdrop.hidden = !open
+    navToggle.setAttribute('aria-expanded', open ? 'true' : 'false')
+    document.documentElement.classList.toggle('nav-open', Boolean(open))
+  }
+
+  if(navToggle && navDrawer && navBackdrop){
+    navToggle.addEventListener('click', ()=> setNavOpen(!navDrawer.classList.contains('is-open')))
+    navBackdrop.addEventListener('click', ()=> setNavOpen(false))
+    if(navClose) navClose.addEventListener('click', ()=> setNavOpen(false))
+    navDrawer.addEventListener('click', (e)=>{
+      const t = e.target
+      if(t && t.tagName === 'A') setNavOpen(false)
+    })
+    document.addEventListener('keydown', (e)=>{
+      if(e.key === 'Escape') setNavOpen(false)
+    })
+  }
+
   // --- Data model ---
   const DEFAULT_DATA = {
     prices: [

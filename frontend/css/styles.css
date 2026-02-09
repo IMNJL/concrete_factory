@@ -89,7 +89,7 @@ html {
 
 /* Header styles */
 header.site-header {
-  background-image: url('../assets/documents/background.jpg');
+  /* background-image: url('../assets/documents/background.jpg'); */
   background-size: cover;
   background-position: center;
   color: white;
