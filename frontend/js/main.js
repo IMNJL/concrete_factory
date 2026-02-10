@@ -146,6 +146,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
       requestAnimationFrame(()=> overlay.classList.add('is-open'))
       menuBtn.setAttribute('aria-expanded', 'true')
       document.body.style.overflow = 'hidden'
+      syncHeaderOffset()
     }
 
     function closeMenu(){
@@ -155,6 +156,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
       // wait for transition before hiding
       window.setTimeout(()=>{
         overlay.hidden = true
+        syncHeaderOffset()
       }, 200)
     }
 
@@ -183,6 +185,15 @@ document.addEventListener('DOMContentLoaded', ()=>{
     document.addEventListener('keydown', (e)=>{
       if(e.key === 'Escape' && !overlay.hidden) closeMenu()
     })
+  }
+
+  function syncHeaderOffset(){
+    const header = document.querySelector('header.site-header')
+    if(!header) return
+    const h = header.offsetHeight
+    // small breathing room so anchors don't stick to the header
+    const px = Math.max(0, Math.round(h + 10))
+    document.documentElement.style.setProperty('--header-offset', `${px}px`)
   }
 
   function formatRubles(n){
@@ -1223,6 +1234,12 @@ document.addEventListener('DOMContentLoaded', ()=>{
   }
 
   // --- Init ---
+  // Keep layout stable with fixed header (zoom/orientation changes)
+  syncHeaderOffset()
+  window.addEventListener('load', syncHeaderOffset, { passive: true })
+  window.addEventListener('resize', syncHeaderOffset, { passive: true })
+  window.addEventListener('orientationchange', syncHeaderOffset, { passive: true })
+
   initMobileMenu()
   renderPriceTable()
   loadPriceCatalog().then(()=>hydrateAllTypeRows())
