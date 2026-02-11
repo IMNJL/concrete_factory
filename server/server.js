@@ -72,7 +72,7 @@ app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', allowOrigin)
     res.setHeader('Vary', 'Origin')
   }
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
   res.setHeader('Access-Control-Max-Age', '86400')
 
@@ -99,6 +99,7 @@ const messagesFile = path.join(__dirname, 'messages.json')
 
 // prices file
 const pricesFile = path.join(__dirname, 'prices.json')
+const concretePriceFile = path.join(__dirname, '../assets/concretePriceInfo.json')
 
 // --- Email sending (recommended): HTTPS Email API (Resend) ---
 const EMAIL_PROVIDER = String(process.env.EMAIL_PROVIDER || 'resend').trim().toLowerCase()
@@ -521,6 +522,19 @@ const savePrices = (prices) => {
   fs.writeFileSync(pricesFile, JSON.stringify(prices, null, 2))
 }
 
+const loadConcretePriceInfo = () => {
+  if (!fs.existsSync(concretePriceFile)) return null
+  try {
+    return JSON.parse(fs.readFileSync(concretePriceFile, 'utf-8'))
+  } catch (_) {
+    return null
+  }
+}
+
+const saveConcretePriceInfo = (payload) => {
+  fs.writeFileSync(concretePriceFile, JSON.stringify(payload, null, 2), 'utf8')
+}
+
 // Routes
 app.get('/api/prices', (req, res) => {
   const prices = loadPrices()
@@ -538,6 +552,30 @@ app.post('/api/prices', (req, res) => {
   savePrices(prices)
 
   res.status(201).json({ message: 'Price added successfully' })
+})
+
+app.get('/api/concrete-price', (req, res) => {
+  const data = loadConcretePriceInfo()
+  if (!data) return res.status(500).json({ ok: false, error: 'Failed to read concrete price data' })
+  res.json(data)
+})
+
+app.put('/api/concrete-price', (req, res) => {
+  const payload = req.body
+  if (!payload || typeof payload !== 'object') {
+    return res.status(400).json({ ok: false, error: 'Payload is required' })
+  }
+  if (!Array.isArray(payload.sections)) {
+    return res.status(400).json({ ok: false, error: 'Payload.sections must be an array' })
+  }
+
+  try {
+    saveConcretePriceInfo(payload)
+    res.json({ ok: true })
+  } catch (err) {
+    console.error('Failed to save concrete price data', err)
+    res.status(500).json({ ok: false, error: 'Failed to save concrete price data' })
+  }
 })
 
 // Healthcheck endpoint

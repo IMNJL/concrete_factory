@@ -318,10 +318,16 @@ export class AdminController {
     return Array.from(grouped.entries()).map(([title, sectionRows]) => ({ title, rows: sectionRows }))
   }
 
-  persistConcreteData() {
-    this.contentService.saveConcretePriceInfoOverride(this.concreteData)
-    this.onPriceDataChanged()
-    if (this.status) this.status.textContent = 'Прайс обновлён'
+  async persistConcreteData() {
+    try {
+      await this.contentService.saveConcretePriceInfoOverride(this.concreteData)
+      await this.onPriceDataChanged()
+      if (this.status) this.status.textContent = 'Прайс обновлён на сервере'
+    } catch (err) {
+      console.error(err)
+      if (this.status) this.status.textContent = 'Ошибка сохранения на сервере'
+      alert('Не удалось сохранить прайс на сервере. Проверьте, что backend запущен и доступен.')
+    }
   }
 
   saveMap() {

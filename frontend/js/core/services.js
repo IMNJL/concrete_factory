@@ -40,33 +40,32 @@ export class ContentService {
   constructor() {
     this.concreteInfoPromise = null
     this.companyInfoPromise = null
-    this.concreteInfoOverrideKey = 'bz_concrete_price_info_override'
   }
 
   loadConcretePriceInfo() {
     if (this.concreteInfoPromise) return this.concreteInfoPromise
-    this.concreteInfoPromise = fetch('assets/concretePriceInfo.json')
+    this.concreteInfoPromise = fetch(AppConfigService.apiUrl('/api/concrete-price'))
       .then((response) => response.ok ? response.json() : null)
-      .then((base) => {
-        const override = this.loadConcretePriceInfoOverride()
-        return override || base
+      .then((fromApi) => {
+        if (fromApi) return fromApi
+        return fetch('assets/concretePriceInfo.json').then((response) => response.ok ? response.json() : null)
       })
       .catch(() => null)
     return this.concreteInfoPromise
   }
 
-  loadConcretePriceInfoOverride() {
-    try {
-      const raw = localStorage.getItem(this.concreteInfoOverrideKey)
-      if (!raw) return null
-      return JSON.parse(raw)
-    } catch (_) {
-      return null
-    }
-  }
+  async saveConcretePriceInfoOverride(data) {
+    const response = await fetch(AppConfigService.apiUrl('/api/concrete-price'), {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
 
-  saveConcretePriceInfoOverride(data) {
-    localStorage.setItem(this.concreteInfoOverrideKey, JSON.stringify(data))
+    if (!response.ok) {
+      const text = await response.text().catch(() => '')
+      throw new Error(`Failed to save concrete price data: HTTP ${response.status} ${text}`)
+    }
+
     this.concreteInfoPromise = Promise.resolve(data)
   }
 
