@@ -99,7 +99,11 @@ const messagesFile = path.join(__dirname, 'messages.json')
 
 // prices file
 const pricesFile = path.join(__dirname, 'prices.json')
-const defaultConcretePriceFile = path.join(__dirname, '../assets/concretePriceInfo.json')
+const repoConcretePriceFile = path.join(__dirname, '../assets/concretePriceInfo.json')
+const localConcretePriceFile = path.join(__dirname, 'concretePriceInfo.json')
+const defaultConcretePriceFile = fs.existsSync(repoConcretePriceFile)
+  ? repoConcretePriceFile
+  : localConcretePriceFile
 const concretePriceFile = String(process.env.CONCRETE_PRICE_FILE || '').trim() || defaultConcretePriceFile
 
 // --- Email sending (recommended): HTTPS Email API (Resend) ---
@@ -541,10 +545,16 @@ const saveConcretePriceInfo = (payload) => {
 
 const ensureConcretePriceFileExists = () => {
   if (fs.existsSync(concretePriceFile)) return
-  if (concretePriceFile === defaultConcretePriceFile) return
-  if (!fs.existsSync(defaultConcretePriceFile)) return
+
+  const seedCandidates = [
+    localConcretePriceFile,
+    repoConcretePriceFile,
+  ]
+  const seedPath = seedCandidates.find((p) => fs.existsSync(p))
+  if (!seedPath) return
+
   try {
-    const seed = fs.readFileSync(defaultConcretePriceFile, 'utf8')
+    const seed = fs.readFileSync(seedPath, 'utf8')
     const dir = path.dirname(concretePriceFile)
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
     fs.writeFileSync(concretePriceFile, seed, 'utf8')

@@ -1,0 +1,98 @@
+{
+  "meta": {
+    "title": "Прайс-лист 2025",
+    "effectiveFrom": "2025-04-07",
+    "headerNote": "ПМД до -15: +100 ₽/м³ (по согласованию)",
+    "site": "brukremenkul.ru"
+  },
+  "contacts": {
+    "salesPhone": "8-912-891-57-44",
+    "salesLabel": "Отдел продаж: ",
+    "dispatcherPhone": "8-919-123-51-79",
+    "dispatcherEmail": "pkbeton@list.ru",
+    "labContact": "Наталья",
+    "labPhone": "8-908-040-22-55",
+    "additionalPhones": [
+      {
+        "name": "Отдел продаж ",
+        "phones": ["8-912-891-57-44", "8-919-123-22-75"],
+        "note": "звонить с 9-18"
+      }
+    ]
+  },
+  "sections": [
+    {
+      "type": "table",
+      "title": "Товарный бетон",
+      "columns": [
+        { "key": "mark", "label": "Класс" },
+        { "key": "frost", "label": "F" },
+        { "key": "price", "label": "Цена" },
+        { "key": "priceVat", "label": "с НДС" }
+      ],
+      "rows": [
+        { "mark": "B 7,5", "frost": "100", "price": 4000, "priceVat": 4150 },
+        { "mark": "B 10", "frost": "150", "price": 4200, "priceVat": 4350 },
+        { "mark": "B 15", "frost": "200", "price": 4750, "priceVat": 4900 },
+        { "mark": "B 20", "frost": "250", "price": 5100, "priceVat": 5250 },
+        { "mark": "B 22,5", "frost": "300", "price": 5400, "priceVat": 5550 },
+        { "mark": "B 25", "frost": "350", "price": 5600, "priceVat": 5750 },
+        { "mark": "B 30", "frost": "400", "price": 6100, "priceVat": 6250 },
+        { "mark": "B 35", "frost": "450", "price": 6650, "priceVat": 6800 },
+        { "mark": "B 40", "frost": "550", "price": 7450, "priceVat": 7600 }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "Мелкозернистый бетон",
+      "columns": [
+        { "key": "mark", "label": "Класс" },
+        { "key": "frost", "label": "F" },
+        { "key": "price", "label": "Цена" },
+        { "key": "priceVat", "label": "с НДС" }
+      ],
+      "rows": [
+        { "mark": "B 7,5", "frost": "100", "price": 4300, "priceVat": 4500 },
+        { "mark": "B 10", "frost": "150", "price": 4600, "priceVat": 4900 },
+        { "mark": "B 15", "frost": "200", "price": 5000, "priceVat": 5200 }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "Раствор",
+      "subtitle": "Выдача раствора: с 6:00 до 7:45 и с 11:30 до 12:45",
+      "columns": [
+        { "key": "mark", "label": "Марка" },
+        { "key": "price", "label": "Цена" },
+        { "key": "priceVat", "label": "с НДС" }
+      ],
+      "rows": [
+        { "mark": "M-50", "price": 4500, "priceVat": 4720 },
+        { "mark": "M-75", "price": 4700, "priceVat": 4820 },
+        { "mark": "M-100", "price": 4800, "priceVat": 5020 },
+        { "mark": "M-150", "price": 5000, "priceVat": 5170 },
+        { "mark": "M-200", "price": 5250, "priceVat": 5500 }
+      ]
+    }
+  ],
+  "notes": {
+    "payment": [
+      "Мы производим товар при условии предоплаты.",
+      "Стоимость доставки за черту города оговаривается отдельно."
+    ],
+    "unloading": [
+      "Время разгрузки автобетоносмесителя объёмом более 3 м³ — 1 час.",
+      "Время разгрузки V=3 м³ — 30 минут; простой — 1000 ₽ / 30 минут."
+    ],
+    "mixerService": [
+      "Услуги автобетоносмесителя: V=3 м³ — 5000 ₽; с НДС — 5500 ₽."
+    ],
+    "deliveryRates": [
+      "V=3,1–6 м³ — 6000 ₽/рейс; с НДС — 6600 ₽/рейс",
+      "V=7 м³ — 7000 ₽/рейс; с НДС — 7700 ₽/рейс",
+      "V=8 м³ — 8000 ₽/рейс; с НДС — 8800 ₽/рейс",
+      "V=9 м³ — 9000 ₽/рейс; с НДС — 9900 ₽/рейс",
+      "V=10 м³ — 10000 ₽/рейс; с НДС — 11000 ₽/рейс"
+    ]
+  }
+}
