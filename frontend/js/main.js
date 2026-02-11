@@ -310,6 +310,32 @@ document.addEventListener('DOMContentLoaded', ()=>{
     if(reqEl) reqEl.innerHTML = renderCompanyRequisitesHtml(company) || '—'
   }
 
+  function renderHeaderTelegramContacts(priceInfo){
+    const contacts = priceInfo && priceInfo.contacts ? priceInfo.contacts : null
+    if(!contacts) return
+
+    const dispatcherPhone = contacts.dispatcherPhone || ''
+    const salesPhone = contacts.salesPhone || ''
+
+    const dispatcherTg = document.getElementById('headerTelegramDispatcherLink')
+    const dispatcherPhoneLink = document.getElementById('headerDispatcherPhoneLink')
+    if(dispatcherTg) dispatcherTg.href = telegramPhoneUrl(dispatcherPhone)
+    if(dispatcherPhoneLink){
+      dispatcherPhoneLink.textContent = dispatcherPhone || '—'
+      const d = phoneDigits(dispatcherPhone)
+      dispatcherPhoneLink.href = d ? `tel:${d}` : '#'
+    }
+
+    const salesTg = document.getElementById('headerTelegramSalesLink')
+    const salesPhoneLink = document.getElementById('headerSalesPhoneLink')
+    if(salesTg) salesTg.href = telegramPhoneUrl(salesPhone)
+    if(salesPhoneLink){
+      salesPhoneLink.textContent = salesPhone || '—'
+      const d = phoneDigits(salesPhone)
+      salesPhoneLink.href = d ? `tel:${d}` : '#'
+    }
+  }
+
   // --- Price catalog for calculator (type -> class/mark) ---
   let priceCatalog = null
   let priceCatalogPromise = null
@@ -1259,6 +1285,13 @@ document.addEventListener('DOMContentLoaded', ()=>{
   if(mainContactsExtra){
     loadConcretePriceInfo().then(data=>{
       if(data) renderMainExtraContacts(data, mainContactsExtra)
+    })
+  }
+
+  // Header: telegram contacts (dispatcher + sales)
+  if(document.getElementById('headerTelegramDispatcherLink') || document.getElementById('headerTelegramSalesLink')){
+    loadConcretePriceInfo().then(data=>{
+      if(data) renderHeaderTelegramContacts(data)
     })
   }
 
