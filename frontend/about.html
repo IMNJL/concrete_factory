@@ -9,13 +9,13 @@
   <base href="./">
 </head>
 <body>
-  <header class="site-header" style="background-size: cover; background-position: center;">
+  <header class="site-header site-header--plain">
     <div class="header-top">
       <div class="logo">
         <button class="menu-btn" id="menuBtn" type="button" aria-label="Меню" aria-controls="mobileMenuOverlay" aria-expanded="false">
           <span class="menu-icon" aria-hidden="true"></span>
         </button>
-        <img src="assets/logos/logo.png">
+        <img src="assets/logos/logo.png" alt="Логотип бетонного завода">
       </div>
 
       <div class="header-slogan">
@@ -61,7 +61,6 @@
       </div>
     </nav>
 
-    <!-- Mobile menu overlay -->
     <div class="mobile-menu-overlay" id="mobileMenuOverlay" hidden>
       <div class="mobile-menu" role="dialog" aria-modal="true" aria-label="Меню">
         <div class="mobile-menu-header">
@@ -85,38 +84,38 @@
       <h1>О заводе</h1>
       <p class="lead">Производим товарный бетон и растворы, подбираем состав под задачу и обеспечиваем доставку по городу и области.</p>
 
-      <div style="display:grid;grid-template-columns:1.1fr 0.9fr;gap:14px;align-items:start">
+      <div class="about-grid">
         <div>
-          <h3 style="margin-top:0">Что мы делаем</h3>
-          <ul style="margin:8px 0 0 18px;line-height:1.6">
+          <h3 class="about-subtitle-top">Что мы делаем</h3>
+          <ul class="about-list">
             <li>Товарный бетон и цементные растворы для частного и коммерческого строительства.</li>
             <li>Подбор марки и подвижности (П) под условия работ: фундамент, плита, стяжка, монолит.</li>
             <li>Отгрузка с завода, доставка миксерами, согласование времени подачи.</li>
           </ul>
 
           <h3>Контроль качества</h3>
-          <ul style="margin:8px 0 0 18px;line-height:1.6">
+          <ul class="about-list">
             <li>Стабильность состава и дозирования.</li>
             <li>Возможность предоставления паспортов/документов и сопроводительных материалов (раздел «Технолог»).</li>
             <li>Консультация по уходу за бетоном (время набора прочности, защита от пересыхания/мороза).</li>
           </ul>
 
           <h3>Доставка и логистика</h3>
-          <ul style="margin:8px 0 0 18px;line-height:1.6">
+          <ul class="about-list">
             <li>Планирование маршрута и времени подачи, чтобы бетон прибыл вовремя.</li>
             <li>Рекомендации по подготовке подъезда и месту разгрузки.</li>
             <li>Расчёт объёма и стоимости — на главной странице в калькуляторе.</li>
           </ul>
         </div>
 
-        <div class="card" style="padding:14px">
-          <h3 style="margin-top:0">Коротко</h3>
+        <div class="card about-short-card">
+          <h3 class="about-subtitle-top">Коротко</h3>
           <div class="small">Город</div>
-          <div style="font-weight:800">Челябинск</div>
-          <div style="height:10px"></div>
+          <div class="about-strong">Челябинск</div>
+          <div class="spacer-10"></div>
           <div class="small">Телефон</div>
-          <div style="font-weight:800">8 (982) 319-98-97</div>
-          <div style="height:10px"></div>
+          <div class="about-strong">8 (982) 319-98-97</div>
+          <div class="spacer-10"></div>
           <div class="small">Как заказать</div>
           <div>Оставьте заявку в калькуляторе или напишите нам в мессенджерах — уточним марку, объём и доставку.</div>
         </div>
@@ -124,17 +123,18 @@
     </section>
 
     <section class="card">
-      <h2 style="margin-top:0">Условия и доставка</h2>
+      <h2 class="about-subtitle-top">Условия и доставка</h2>
       <div id="aboutSecondaryInfo" class="about-secondary-grid">Загрузка...</div>
     </section>
   </main>
 
   <footer>
-    <div style="max-width:1100px;margin:0 auto;display:flex;justify-content:space-between;align-items:center">
+    <div class="footer-inner">
       <div>© Бетонный завод — Все права защищены</div>
     </div>
   </footer>
 
-  <script src="js/main.js"></script>
+  <script src="config.js"></script>
+  <script type="module" src="js/main.js"></script>
 </body>
 </html>
