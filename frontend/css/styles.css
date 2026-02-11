@@ -243,7 +243,7 @@ header.site-header {
 }
 
 .logo img {
-  height: clamp(72px, 8vw, 110px);
+  height: clamp(92px, 9vw, 150px);
   width: auto;
 }
 
