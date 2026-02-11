@@ -99,7 +99,8 @@ const messagesFile = path.join(__dirname, 'messages.json')
 
 // prices file
 const pricesFile = path.join(__dirname, 'prices.json')
-const concretePriceFile = path.join(__dirname, '../assets/concretePriceInfo.json')
+const defaultConcretePriceFile = path.join(__dirname, '../assets/concretePriceInfo.json')
+const concretePriceFile = String(process.env.CONCRETE_PRICE_FILE || '').trim() || defaultConcretePriceFile
 
 // --- Email sending (recommended): HTTPS Email API (Resend) ---
 const EMAIL_PROVIDER = String(process.env.EMAIL_PROVIDER || 'resend').trim().toLowerCase()
@@ -426,6 +427,7 @@ console.log(
     fromEmail: (process.env.FROM_EMAIL || '').trim() ? 'set' : 'missing'
   })
 )
+console.log(`Concrete price file: ${concretePriceFile}`)
 
 app.get('/api/email/status', async (req, res) => {
   const { toEmail, fromEmail, fromName } = getEnvelopeFromEnv()
@@ -532,8 +534,26 @@ const loadConcretePriceInfo = () => {
 }
 
 const saveConcretePriceInfo = (payload) => {
+  const dir = path.dirname(concretePriceFile)
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
   fs.writeFileSync(concretePriceFile, JSON.stringify(payload, null, 2), 'utf8')
 }
+
+const ensureConcretePriceFileExists = () => {
+  if (fs.existsSync(concretePriceFile)) return
+  if (concretePriceFile === defaultConcretePriceFile) return
+  if (!fs.existsSync(defaultConcretePriceFile)) return
+  try {
+    const seed = fs.readFileSync(defaultConcretePriceFile, 'utf8')
+    const dir = path.dirname(concretePriceFile)
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
+    fs.writeFileSync(concretePriceFile, seed, 'utf8')
+    console.log(`Concrete price file initialized at ${concretePriceFile}`)
+  } catch (err) {
+    console.error('Failed to initialize concrete price file', err)
+  }
+}
+ensureConcretePriceFileExists()
 
 // Routes
 app.get('/api/prices', (req, res) => {
