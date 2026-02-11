@@ -251,14 +251,16 @@
 
   <div id="adminModal" class="admin-modal">
     <div class="admin-modal-card">
-      <button id="closeAdmin" class="button secondary admin-close-btn" type="button">✕</button>
-      <h3>Админ-панель (локально)</h3>
-      <p class="small">Здесь можно менять прайс, параметры карты и скачать/загрузить прайс в формате JSON. Пароль по умолчанию: <strong>admin123</strong></p>
+      <button id="closeAdmin" class="button secondary admin-close-btn" type="button" aria-label="Закрыть окно">✕</button>
+      <div class="admin-head">
+        <h3 class="admin-title">Админ-панель</h3>
+        <p class="small admin-subtitle">Управление прайсом и картой. Пароль по умолчанию: <strong>admin123</strong></p>
+      </div>
 
-      <div class="admin-grid">
+      <div class="admin-grid admin-grid-auth">
         <div class="admin-col">
           <label for="adminPass">Пароль</label>
-          <input id="adminPass" type="password">
+          <input id="adminPass" type="password" placeholder="Введите пароль">
           <button id="authBtn" class="button admin-action-top" type="button">Войти</button>
         </div>
         <div class="admin-col">
@@ -269,25 +271,38 @@
       </div>
 
       <hr class="admin-divider">
+      <div id="adminStatus" class="small admin-status"></div>
 
       <div id="adminArea" class="is-hidden">
-        <h4>Прайс (редактируем)</h4>
-        <table id="adminTable">
-          <thead>
-            <tr><th>Марка</th><th>Цена (₽/м³)</th><th>Действие</th></tr>
-          </thead>
-          <tbody></tbody>
-        </table>
+        <div class="admin-section">
+          <h4>Прайс (редактируем)</h4>
+          <label for="adminSection">Раздел прайса</label>
+          <select id="adminSection"></select>
+          <table id="adminTable">
+            <thead>
+              <tr><th>Марка</th><th>F</th><th>Цена</th><th>с НДС</th><th>Действие</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
 
         <div class="admin-add-row">
-          <input id="newMark" placeholder="М250">
-          <input id="newPrice" placeholder="4200" type="number">
+          <input id="newMark" placeholder="Марка/класс (например B 25)">
+          <input id="newFrost" placeholder="F (например 300)">
+          <input id="newPrice" placeholder="Цена" type="number">
+          <input id="newPriceVat" placeholder="Цена с НДС" type="number">
           <button id="addPrice" class="button" type="button">Добавить</button>
         </div>
 
         <div class="admin-bottom-row">
-          <button id="exportJson" class="button" type="button">Скачать прайс (JSON)</button>
-          <input id="importFile" type="file" accept="application/json">
+          <button id="exportCsv" class="button" type="button">Скачать текущий прайс (CSV)</button>
+          <label for="importFile" class="button secondary admin-import-label">Загрузить новый CSV</label>
+          <input id="importFile" class="admin-import-input" type="file" accept=".csv,text/csv">
+        </div>
+        <p class="small admin-hint">Формат CSV: <code>section;mark;frost;price;priceVat</code> — разделы: «Товарный бетон», «Раствор» и т.д.</p>
+
+        <div class="admin-footer-row">
+          <button id="closeAdminBottom" class="button secondary" type="button">Закрыть окно</button>
         </div>
       </div>
     </div>

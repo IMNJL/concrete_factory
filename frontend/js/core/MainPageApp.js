@@ -43,7 +43,8 @@ export class MainPageApp {
       () => this.getAppDataMutable(),
       (next) => this.setAppData(next),
       () => this.persistAppData(),
-      () => this.refreshPriceViews()
+      () => this.refreshPriceViews(),
+      this.contentService
     )
   }
 

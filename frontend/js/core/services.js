@@ -40,14 +40,34 @@ export class ContentService {
   constructor() {
     this.concreteInfoPromise = null
     this.companyInfoPromise = null
+    this.concreteInfoOverrideKey = 'bz_concrete_price_info_override'
   }
 
   loadConcretePriceInfo() {
     if (this.concreteInfoPromise) return this.concreteInfoPromise
     this.concreteInfoPromise = fetch('assets/concretePriceInfo.json')
       .then((response) => response.ok ? response.json() : null)
+      .then((base) => {
+        const override = this.loadConcretePriceInfoOverride()
+        return override || base
+      })
       .catch(() => null)
     return this.concreteInfoPromise
+  }
+
+  loadConcretePriceInfoOverride() {
+    try {
+      const raw = localStorage.getItem(this.concreteInfoOverrideKey)
+      if (!raw) return null
+      return JSON.parse(raw)
+    } catch (_) {
+      return null
+    }
+  }
+
+  saveConcretePriceInfoOverride(data) {
+    localStorage.setItem(this.concreteInfoOverrideKey, JSON.stringify(data))
+    this.concreteInfoPromise = Promise.resolve(data)
   }
 
   loadCompanyInfo() {
