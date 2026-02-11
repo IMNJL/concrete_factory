@@ -3,6 +3,7 @@
   --primary-color: #0078D7; /* Blue tone */
   --secondary-color: #005A9E; /* Darker blue */
   --accent-color: #00A4EF; /* Lighter blue */
+  --slogan-accent: #a855f7;
   --background-color: #F3F9FF; /* Light background */
   --text-color: #333333; /* Neutral text */
   --accent-dark: var(--text-color);
@@ -117,23 +118,24 @@ header.site-header {
 
 .header-slogan {
   text-align: center;
-  color: #ffffff;
+  color: var(--slogan-accent);
   font-weight: 800;
   line-height: 1.15;
   text-transform: uppercase;
   letter-spacing: 0.4px;
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+  min-width: 0;
 }
 
 .header-slogan-title {
-  font-size: 22px;
-  color: #ffffff;
+  font-size: clamp(12px, 2.2vw, 22px);
+  color: var(--slogan-accent);
 }
 
 .header-slogan-sub {
-  font-size: 18px;
-  opacity: 0.95;
-  color: #ffffff;
+  font-size: clamp(11px, 1.8vw, 18px);
+  opacity: 0.98;
+  color: var(--slogan-accent);
 }
 
 .header-contact-block {
@@ -839,7 +841,9 @@ footer {
 /* Mobile navigation: burger + sheet; slogan stays but becomes compact */
 @media (max-width: 760px) {
   .menu-btn { display: inline-flex; }
-  .header-nav { display: none; }
+  .header-nav { padding: 8px 12px; }
+  .header-nav-inner { gap: 14px; }
+  .header-nav a { font-size: 14px; }
 
   .header-top {
     grid-template-columns: 1fr auto;
@@ -867,15 +871,23 @@ footer {
   .header-slogan-sub { font-size: 12px; opacity: 0.92; }
 }
 
+/* Real mobile devices: hide slogan (looks noisy in column layout) */
+@media (hover: none) and (pointer: coarse) and (max-width: 760px) {
+  .header-slogan { display: none; }
+}
+
 /* Landscape phones: keep header short so content is visible */
 @media (max-height: 520px) and (max-width: 900px) {
   .menu-btn { display: inline-flex; }
-  .header-nav { display: none; }
+  .header-nav { padding: 6px 10px; }
+  .header-nav-inner { gap: 12px; }
+  .header-nav a { font-size: 13px; }
   .header-slogan { display: none; }
 
   header.site-header { padding-top: 6px; }
   .header-top { padding: 6px 10px 8px; row-gap: 6px; }
   .logo img { height: 46px; }
+  .header-phone { font-size: 18px; }
   .header-city { display: none; }
 }
 
