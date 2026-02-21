@@ -1,0 +1,14 @@
+{
+  "name": "concrete-factory-server",
+  "version": "1.0.0",
+  "description": "Minimal server for serving the concrete_factory site and accepting orders",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "dotenv": "^16.3.1"
+  }
+}

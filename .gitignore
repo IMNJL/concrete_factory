@@ -1,12 +1,19 @@
-*.pdf
-*.docx
+# *.pdf
+# *.docx
 *.doc
 1.xml
 site/images/*
-*.png
-*.jpg
+# *.png
+# *.jpg
 *.jpeg
-*.json  
+# *.json  
 server/node_modules/*
-server/
+# server/
 .env
+server/.env
+*.DS_Store*
+
+# GitHub Pages build output
+dist/
+.dist/
+server/orders.json

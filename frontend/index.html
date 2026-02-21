@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>БЕТОННЫЙ ЗАВОД — Главная</title>
+  <meta name="description" content="Бетонный завод — прайс, калькулятор, контакты, сертификаты" />
+  <link rel="stylesheet" href="css/styles.css">
+  <base href="./">
+</head>
+<body>
+  <header class="site-header site-header--with-bg">
+    <div class="header-top">
+      <div class="logo">
+        <button class="menu-btn" id="menuBtn" type="button" aria-label="Меню" aria-controls="mobileMenuOverlay" aria-expanded="false">
+          <span class="menu-icon" aria-hidden="true"></span>
+        </button>
+        <img src="assets/logos/new_logo.png" alt="Логотип бетонного завода">
+      </div>
+
+      <div class="header-slogan">
+        <div class="header-slogan-title">Производство бетона и доставка</div>
+        <div class="header-slogan-sub">Под любые цели</div>
+      </div>
+
+      <div class="header-contact-block">
+        <a class="header-phone" id="headerPhoneLink" href="#">—</a>
+        <div class="header-city">г. Челябинск</div>
+        <div class="header-messengers" aria-label="Связь в Telegram">
+          <div class="header-messenger-item">
+            <div class="header-messenger-row">
+              <a class="messenger" id="headerTelegramDispatcherLink" href="#" target="_blank" rel="noopener" aria-label="Telegram диспетчер">
+                <img src="assets/icons/telegram.svg" alt="Telegram" width="28" height="28" loading="lazy">
+              </a>
+              <a class="header-messenger-phone" id="headerDispatcherPhoneLink" href="#">—</a>
+            </div>
+            <div class="header-messenger-note">диспетчер</div>
+          </div>
+
+          <div class="header-messenger-item">
+            <div class="header-messenger-row">
+              <a class="messenger" id="headerTelegramSalesLink" href="#" target="_blank" rel="noopener" aria-label="Telegram отдел продаж">
+                <img src="assets/icons/telegram.svg" alt="Telegram" width="28" height="28" loading="lazy">
+              </a>
+              <a class="header-messenger-phone" id="headerSalesPhoneLink" href="#">—</a>
+            </div>
+            <div class="header-messenger-note">отдел продаж</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <nav class="header-nav" aria-label="Навигация">
+      <div class="header-nav-inner">
+        <a href="#home">Главная</a>
+        <a href="#prices">Прайс</a>
+        <a href="#calculator">Калькулятор</a>
+        <a href="about.html">О заводе</a>
+        <a href="#tech">Технолог</a>
+        <a href="#contacts">Контакты</a>
+      </div>
+    </nav>
+
+    <div class="mobile-menu-overlay" id="mobileMenuOverlay" hidden>
+      <div class="mobile-menu" role="dialog" aria-modal="true" aria-label="Меню">
+        <div class="mobile-menu-header">
+          <div class="mobile-menu-title">Меню</div>
+          <button class="mobile-menu-close" id="menuCloseBtn" type="button" aria-label="Закрыть меню">✕</button>
+        </div>
+        <div class="mobile-menu-links" id="mobileMenuLinks">
+          <a href="#home">Главная</a>
+          <a href="#prices">Прайс</a>
+          <a href="#calculator">Калькулятор</a>
+          <a href="about.html">О заводе</a>
+          <a href="#tech">Технолог</a>
+          <a href="#contacts">Контакты</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section id="home" class="hero">
+      <div class="card">
+        <h1>ПРОДАЖА БЕТОНА ОТ ПРОИЗВОДИТЕЛЯ</h1>
+        <p class="lead">Поставляем качественный бетон напрямую с завода с доставкой по Челябинску и области. Все документы, паспорта и сертификаты доступны в разделе «Технолог».</p>
+        <div class="features">
+          <div class="feature">Свой автопарк</div>
+          <div class="feature">Лаборатория качества</div>
+          <div class="feature">Широкий ассортимент марок бетона</div>
+          <div class="feature">Персональный менеджер</div>
+          <div class="feature">Чёткий график выдачи</div>
+          <div class="feature">Доставка за 24 часа</div>
+        </div>
+        <div class="hero-cta-wrap">
+          <a class="button" href="#calculator">Рассчитать стоимость</a>
+        </div>
+      </div>
+
+      <aside class="card">
+        <h3>Контакты</h3>
+        <div class="small">Телефон</div>
+        <div id="topCompanyPhone" class="top-company-phone">—</div>
+        <div class="small">Адрес</div>
+        <a id="topCompanyAddressLink" class="top-company-address-link" href="#" target="_blank" rel="noopener">—</a>
+        <div class="small top-requisites-title">Реквизиты</div>
+        <div id="topCompanyRequisites" class="small">—</div>
+      </aside>
+    </section>
+
+    <section id="prices" class="card">
+      <h2>Прайс</h2>
+      <p class="small">Цены указаны за 1 м³.</p>
+      <div id="priceTable" class="price-table-offset"></div>
+    </section>
+
+    <section id="calculator" class="card">
+      <h2>Калькулятор объёма фундамента</h2>
+      <div class="calculator-wrap">
+        <div class="foundation-tabs-label">Тип фундамента</div>
+        <div class="foundation-tabs" role="tablist" aria-label="Тип фундамента">
+          <button type="button" class="foundation-tab is-active" data-kind="strip" role="tab" aria-selected="true" aria-controls="foundationFieldsStrip">Ленточный</button>
+          <button type="button" class="foundation-tab" data-kind="slab" role="tab" aria-selected="false" aria-controls="foundationFieldsSlab">Плиточный</button>
+          <button type="button" class="foundation-tab" data-kind="piles" role="tab" aria-selected="false" aria-controls="foundationFieldsPiles">Сваи</button>
+        </div>
+        <input id="foundationType" type="hidden" value="strip">
+
+        <div id="foundationFormula" class="small">Формула: V = L × W × H (в метрах).</div>
+
+        <div id="foundationFieldsStrip">
+          <label for="foundationLength">Длина (м)</label>
+          <input id="foundationLength" type="number" min="0" step="0.01" placeholder="например: 10" inputmode="decimal">
+
+          <label for="foundationWidth">Ширина (м)</label>
+          <input id="foundationWidth" type="number" min="0" step="0.01" placeholder="например: 8" inputmode="decimal">
+
+          <label for="foundationHeight">Высота (м)</label>
+          <input id="foundationHeight" type="number" min="0" step="0.01" placeholder="например: 0.6" inputmode="decimal">
+        </div>
+
+        <div id="foundationFieldsSlab" class="is-hidden">
+          <label for="slabArea">Площадь плиты S (м²)</label>
+          <input id="slabArea" type="number" min="0" step="0.01" placeholder="например: 80" inputmode="decimal">
+
+          <label for="slabThickness">Толщина плиты h (м)</label>
+          <input id="slabThickness" type="number" min="0" step="0.01" placeholder="например: 0.2" inputmode="decimal">
+        </div>
+
+        <div id="foundationFieldsPiles" class="is-hidden">
+          <label for="pileRadius">Радиус сваи r (м)</label>
+          <input id="pileRadius" type="number" min="0" step="0.01" placeholder="например: 0.15" inputmode="decimal">
+
+          <label for="pileHeight">Глубина/высота сваи h (м)</label>
+          <input id="pileHeight" type="number" min="0" step="0.01" placeholder="например: 2.5" inputmode="decimal">
+        </div>
+
+        <div class="actions-row actions-row-wrap">
+          <button id="volumeCalcBtn" class="button" type="button">Рассчитать объём</button>
+          <button id="volumeClearBtn" class="button secondary" type="button">Сброс</button>
+        </div>
+        <div id="volumeResult" class="calc-result">—</div>
+
+        <hr class="section-divider">
+        <h3 class="section-subtitle">Калькулятор стоимости</h3>
+        <div id="typesArea">
+          <label>Типы бетона</label>
+          <div id="typesContainer"></div>
+          <div class="types-actions">
+            <button id="addTypeBtn" class="button">Добавить тип</button>
+          </div>
+        </div>
+
+        <label for="deliveryKm" class="label-top-offset">Доставка — примерное расстояние (км)</label>
+        <input id="deliveryKm" type="text" value="5" placeholder="например: 10" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
+
+        <div class="actions-row">
+          <button id="calcBtn" class="button">Рассчитать</button>
+          <button id="clearBtn" class="button secondary" type="button">Сброс</button>
+        </div>
+        <div id="calcResult" class="calc-result">—</div>
+
+        <h4 class="buyer-section-title">Данные покупателя</h4>
+        <label for="buyerName">Имя</label>
+        <input id="buyerName" name="buyerName" type="text" placeholder="Иван Иванов" autocomplete="name" required>
+
+        <label for="buyerPhone">Телефон</label>
+        <input id="buyerPhone" name="buyerPhone" type="tel" placeholder="+7 (900) 123-45-67" autocomplete="tel" required>
+
+        <label for="buyerEmail">Email для связи</label>
+        <input id="buyerEmail" name="buyerEmail" type="email" placeholder="client@example.com" autocomplete="email" required>
+
+        <div class="submit-row">
+          <button id="submitOrder" class="button" type="button">Отправить заказ</button>
+          <div id="submitStatus" class="small submit-status">—</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tech" class="card">
+      <h2>Страница технолога</h2>
+      <div class="tech-columns">
+        <div class="tech-col">
+          <h3>Технолог</h3>
+          <p class="tech-person-name"><strong>Иванов Иван Иванович</strong></p>
+          <p class="small">Опыт 12 лет. Ответственный за контроль качества, паспорта и сертификаты.</p>
+        </div>
+        <div class="tech-col">
+          <h3>Сертификаты и файлы</h3>
+          <div class="cert-list">
+            <a href="assets/documents/%D0%9A%D0%B0%D1%80%D1%82%D0%B0%20%D0%9F%D0%9A%20%D0%91%D0%B5%D1%82%D0%BE%D0%BD%20%D1%81%D0%BA%D0%B0%D0%BD%20.jpg" target="_blank" rel="noopener">Карточка предприятия (скан, JPG)</a>
+            <a href="assets/documents/BRU_presentation.pdf" target="_blank" rel="noopener">Презентация ПК «Бетон» (PDF)</a>
+            <a href="assets/documents/Technolog.pdf" target="_blank" rel="noopener">Страница технолога (PDF)</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="contacts" class="card contacts">
+      <h2>Контакты и локация</h2>
+      <div class="grid-3">
+        <div>
+          <h4>Адрес</h4>
+          <div id="companyAddress">—</div>
+          <h4 class="contact-phone-title">Телефон</h4>
+          <div class="contact-values contact-values-spaced">
+            <a id="companyPhoneLink" href="#">—</a>
+          </div>
+          <div id="mainContactsExtra" class="main-contacts-extra"></div>
+        </div>
+
+        <div>
+          <h4>Реквизиты</h4>
+          <div id="companyRequisites" class="small">—</div>
+        </div>
+
+        <div>
+          <h4>Локация</h4>
+          <iframe id="mapFrame" class="map-frame" src="https://yandex.ru/map-widget/v1/?ll=61.128284%2C55.181505&z=16&pt=61.128284%2C55.181505%2Cpm2rdm"></iframe>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+      <div>© Бетонный завод — Все права защищены</div>
+    </div>
+  </footer>
+
+  <button class="admin-btn" id="openAdmin">Админ</button>
+
+  <div id="adminModal" class="admin-modal">
+    <div class="admin-modal-card">
+      <button id="closeAdmin" class="button secondary admin-close-btn" type="button" aria-label="Закрыть окно">✕</button>
+      <div class="admin-head">
+        <h3 class="admin-title">Админ-панель</h3>
+        <p class="small admin-subtitle">Управление прайсом и картой. Пароль по умолчанию: <strong>admin123</strong></p>
+      </div>
+
+      <div class="admin-grid admin-grid-auth">
+        <div class="admin-col">
+          <label for="adminPass">Пароль</label>
+          <input id="adminPass" type="password" placeholder="Введите пароль">
+          <button id="authBtn" class="button admin-action-top" type="button">Войти</button>
+        </div>
+        <div class="admin-col">
+          <label for="mapSrc">Координаты/Frame src карты</label>
+          <input id="mapSrc" placeholder="Ссылка для iframe карты">
+          <button id="saveMap" class="button admin-action-top" type="button">Сохранить карту</button>
+        </div>
+      </div>
+
+      <hr class="admin-divider">
+      <div id="adminStatus" class="small admin-status"></div>
+
+      <div id="adminArea" class="is-hidden">
+        <div class="admin-section">
+          <h4>Прайс (редактируем)</h4>
+          <label for="adminSection">Раздел прайса</label>
+          <select id="adminSection"></select>
+          <table id="adminTable">
+            <thead>
+              <tr><th>Марка</th><th>F</th><th>Цена</th><th>с НДС</th><th>Действие</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <div class="admin-add-row">
+          <input id="newMark" placeholder="Марка/класс (например B 25)">
+          <input id="newFrost" placeholder="F (например 300)">
+          <input id="newPrice" placeholder="Цена" type="number">
+          <input id="newPriceVat" placeholder="Цена с НДС" type="number">
+          <button id="addPrice" class="button" type="button">Добавить</button>
+        </div>
+
+        <div class="admin-bottom-row">
+          <button id="exportCsv" class="button" type="button">Скачать текущий прайс (CSV)</button>
+          <label for="importFile" class="button secondary admin-import-label">Загрузить новый CSV</label>
+          <input id="importFile" class="admin-import-input" type="file" accept=".csv,text/csv">
+        </div>
+        <p class="small admin-hint">Формат CSV: <code>section;mark;frost;price;priceVat</code> — разделы: «Товарный бетон», «Раствор» и т.д.</p>
+
+        <div class="admin-footer-row">
+          <button id="closeAdminBottom" class="button secondary" type="button">Закрыть окно</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

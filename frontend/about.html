@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>БЕТОННЫЙ ЗАВОД — О заводе</title>
+  <meta name="description" content="О заводе: производство бетона, контроль качества, доставка, оборудование" />
+  <link rel="stylesheet" href="css/styles.css">
+  <base href="./">
+</head>
+<body>
+  <header class="site-header site-header--with-bg">
+    <div class="header-top">
+      <div class="logo">
+        <button class="menu-btn" id="menuBtn" type="button" aria-label="Меню" aria-controls="mobileMenuOverlay" aria-expanded="false">
+          <span class="menu-icon" aria-hidden="true"></span>
+        </button>
+        <img src="assets/logos/new_logo.png" alt="Логотип бетонного завода">
+      </div>
+
+      <div class="header-slogan">
+        <div class="header-slogan-title">Производство бетона и доставка.</div>
+        <div class="header-slogan-sub">Под любые цели</div>
+      </div>
+
+      <div class="header-contact-block">
+        <a class="header-phone" id="headerPhoneLink" href="#">—</a>
+        <div class="header-city">г. Челябинск</div>
+        <div class="header-messengers" aria-label="Связь в Telegram">
+          <div class="header-messenger-item">
+            <div class="header-messenger-row">
+              <a class="messenger" id="headerTelegramDispatcherLink" href="#" target="_blank" rel="noopener" aria-label="Telegram диспетчер">
+                <img src="assets/icons/telegram.svg" alt="Telegram" width="28" height="28" loading="lazy">
+              </a>
+              <a class="header-messenger-phone" id="headerDispatcherPhoneLink" href="#">—</a>
+            </div>
+            <div class="header-messenger-note">диспетчер</div>
+          </div>
+
+          <div class="header-messenger-item">
+            <div class="header-messenger-row">
+              <a class="messenger" id="headerTelegramSalesLink" href="#" target="_blank" rel="noopener" aria-label="Telegram отдел продаж">
+                <img src="assets/icons/telegram.svg" alt="Telegram" width="28" height="28" loading="lazy">
+              </a>
+              <a class="header-messenger-phone" id="headerSalesPhoneLink" href="#">—</a>
+            </div>
+            <div class="header-messenger-note">отдел продаж</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <nav class="header-nav" aria-label="Навигация">
+      <div class="header-nav-inner">
+        <a href="index.html#home">Главная</a>
+        <a href="index.html#prices">Прайс</a>
+        <a href="index.html#calculator">Калькулятор</a>
+        <a href="about.html">О заводе</a>
+        <a href="index.html#tech">Технолог</a>
+        <a href="index.html#contacts">Контакты</a>
+      </div>
+    </nav>
+
+    <div class="mobile-menu-overlay" id="mobileMenuOverlay" hidden>
+      <div class="mobile-menu" role="dialog" aria-modal="true" aria-label="Меню">
+        <div class="mobile-menu-header">
+          <div class="mobile-menu-title">Меню</div>
+          <button class="mobile-menu-close" id="menuCloseBtn" type="button" aria-label="Закрыть меню">✕</button>
+        </div>
+        <div class="mobile-menu-links" id="mobileMenuLinks">
+          <a href="index.html#home">Главная</a>
+          <a href="index.html#prices">Прайс</a>
+          <a href="index.html#calculator">Калькулятор</a>
+          <a href="about.html">О заводе</a>
+          <a href="index.html#tech">Технолог</a>
+          <a href="index.html#contacts">Контакты</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="card">
+      <h1>О заводе</h1>
+      <p class="lead">Производим товарный бетон и растворы, подбираем состав под задачу и обеспечиваем доставку по городу и области.</p>
+
+      <div class="about-grid">
+        <div>
+          <h3 class="about-subtitle-top">Что мы делаем</h3>
+          <ul class="about-list">
+            <li>Товарный бетон и цементные растворы для частного и коммерческого строительства.</li>
+            <li>Подбор марки и подвижности (П) под условия работ: фундамент, плита, стяжка, монолит.</li>
+            <li>Отгрузка с завода, доставка миксерами, согласование времени подачи.</li>
+          </ul>
+
+          <h3>Контроль качества</h3>
+          <ul class="about-list">
+            <li>Стабильность состава и дозирования.</li>
+            <li>Возможность предоставления паспортов/документов и сопроводительных материалов (раздел «Технолог»).</li>
+            <li>Консультация по уходу за бетоном (время набора прочности, защита от пересыхания/мороза).</li>
+          </ul>
+
+          <h3>Доставка и логистика</h3>
+          <ul class="about-list">
+            <li>Планирование маршрута и времени подачи, чтобы бетон прибыл вовремя.</li>
+            <li>Рекомендации по подготовке подъезда и месту разгрузки.</li>
+            <li>Расчёт объёма и стоимости — на главной странице в калькуляторе.</li>
+          </ul>
+        </div>
+
+        <div class="card about-short-card">
+          <h3 class="about-subtitle-top">Коротко</h3>
+          <div class="small">Город</div>
+          <div class="about-strong">Челябинск</div>
+          <div class="spacer-10"></div>
+          <div class="small">Телефон</div>
+          <div class="about-strong">8 (982) 319-98-97</div>
+          <div class="spacer-10"></div>
+          <div class="small">Как заказать</div>
+          <div>Оставьте заявку в калькуляторе или напишите нам в мессенджерах — уточним марку, объём и доставку.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 class="about-subtitle-top">Условия и доставка</h2>
+      <div id="aboutSecondaryInfo" class="about-secondary-grid">Загрузка...</div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+      <div>© Бетонный завод — Все права защищены</div>
+    </div>
+  </footer>
+
+  <script src="config.js"></script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
