@@ -24,11 +24,13 @@
       </div>
 
       <div class="header-contact-block">
-        <a class="header-phone" id="headerPhoneLink" href="#">—</a>
         <div class="header-city">г. Челябинск</div>
         <div class="header-messengers" aria-label="Связь в Telegram">
           <div class="header-messenger-item">
             <div class="header-messenger-row">
+              <a class="header-max-link" id="headerDispatcherMaxLink" href="#" aria-label="Позвонить диспетчеру через MAX">
+                <img src="assets/icons/Max_logo_2025.png" alt="MAX" width="28" height="28" loading="lazy">
+              </a>
               <a class="messenger" id="headerTelegramDispatcherLink" href="#" target="_blank" rel="noopener" aria-label="Telegram диспетчер">
                 <img src="assets/icons/telegram.svg" alt="Telegram" width="28" height="28" loading="lazy">
               </a>
@@ -39,6 +41,9 @@
 
           <div class="header-messenger-item">
             <div class="header-messenger-row">
+              <a class="header-max-link" id="headerSalesMaxLink" href="#" aria-label="Позвонить в отдел продаж через MAX">
+                <img src="assets/icons/Max_logo_2025.png" alt="MAX" width="28" height="28" loading="lazy">
+              </a>
               <a class="messenger" id="headerTelegramSalesLink" href="#" target="_blank" rel="noopener" aria-label="Telegram отдел продаж">
                 <img src="assets/icons/telegram.svg" alt="Telegram" width="28" height="28" loading="lazy">
               </a>
@@ -170,8 +175,9 @@
           </div>
         </div>
 
-        <label for="deliveryKm" class="label-top-offset">Доставка — примерное расстояние (км)</label>
-        <input id="deliveryKm" type="text" value="5" placeholder="например: 10" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
+        <label for="deliveryAddress" class="label-top-offset">Доставка — адрес объекта (населённый пункт)</label>
+        <input id="deliveryAddress" type="text" placeholder="например: с. Кременкуль" autocomplete="address-level2">
+        <div class="delivery-note">стоимость оговаривается - после звонка<br>индивидуально, в зависимости от отдаленности</div>
 
         <div class="actions-row">
           <button id="calcBtn" class="button">Рассчитать</button>
@@ -201,13 +207,12 @@
       <div class="tech-columns">
         <div class="tech-col">
           <h3>Технолог</h3>
-          <p class="tech-person-name"><strong>Иванов Иван Иванович</strong></p>
-          <p class="small">Опыт 12 лет. Ответственный за контроль качества, паспорта и сертификаты.</p>
+          <p class="tech-person-name"><strong>Барышева Наталья Алексеевна</strong></p>
+          <p class="small">Опыт более 20 лет. Ответственный за контроль качества, паспорта и сертификаты.</p>
         </div>
         <div class="tech-col">
           <h3>Сертификаты и файлы</h3>
           <div class="cert-list">
-            <a href="assets/documents/%D0%9A%D0%B0%D1%80%D1%82%D0%B0%20%D0%9F%D0%9A%20%D0%91%D0%B5%D1%82%D0%BE%D0%BD%20%D1%81%D0%BA%D0%B0%D0%BD%20.jpg" target="_blank" rel="noopener">Карточка предприятия (скан, JPG)</a>
             <a href="assets/documents/BRU_presentation.pdf" target="_blank" rel="noopener">Презентация ПК «Бетон» (PDF)</a>
             <a href="assets/documents/Technolog.pdf" target="_blank" rel="noopener">Страница технолога (PDF)</a>
           </div>
@@ -231,6 +236,9 @@
         <div>
           <h4>Реквизиты</h4>
           <div id="companyRequisites" class="small">—</div>
+          <div class="main-contacts-extra">
+            <a href="assets/documents/%D0%9A%D0%B0%D1%80%D1%82%D0%B0%20%D0%9F%D0%9A%20%D0%91%D0%B5%D1%82%D0%BE%D0%BD%20%D1%81%D0%BA%D0%B0%D0%BD%20.jpg" target="_blank" rel="noopener">Карточка предприятия (скан, JPG)</a>
+          </div>
         </div>
 
         <div>
@@ -254,7 +262,7 @@
       <button id="closeAdmin" class="button secondary admin-close-btn" type="button" aria-label="Закрыть окно">✕</button>
       <div class="admin-head">
         <h3 class="admin-title">Админ-панель</h3>
-        <p class="small admin-subtitle">Управление прайсом и картой. Пароль по умолчанию: <strong>admin123</strong></p>
+        <p class="small admin-subtitle">Управление прайсом и картой. Используйте пароль администратора из переменной окружения сервера.</p>
       </div>
 
       <div class="admin-grid admin-grid-auth">

@@ -2,6 +2,7 @@ const express = require('express')
 const fs = require('fs')
 const path = require('path')
 const https = require('https')
+const crypto = require('crypto')
 const dotenv = require('dotenv')
 
 // Load environment variables.
@@ -73,7 +74,7 @@ app.use((req, res, next) => {
     res.setHeader('Vary', 'Origin')
   }
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
   res.setHeader('Access-Control-Max-Age', '86400')
 
   if (req.method === 'OPTIONS') return res.status(204).end()
@@ -108,6 +109,214 @@ const concretePriceFile = String(process.env.CONCRETE_PRICE_FILE || '').trim() |
 
 // --- Email sending (recommended): HTTPS Email API (Resend) ---
 const EMAIL_PROVIDER = String(process.env.EMAIL_PROVIDER || 'resend').trim().toLowerCase()
+
+const ADMIN_PASSWORD = String(process.env.ADMIN_PASSWORD || '').trim()
+const ADMIN_PASSWORD_HASH = String(process.env.ADMIN_PASSWORD_HASH || '').trim()
+const ADMIN_MAX_FAILS = parseInt(process.env.ADMIN_MAX_FAILS || '5', 10)
+const ADMIN_BLOCK_MS = parseInt(process.env.ADMIN_BLOCK_MINUTES || '30', 10) * 60 * 1000
+const ADMIN_FAIL_WINDOW_MS = parseInt(process.env.ADMIN_FAIL_WINDOW_MINUTES || '15', 10) * 60 * 1000
+const ADMIN_ALERT_THRESHOLD = parseInt(process.env.ADMIN_ALERT_THRESHOLD || '3', 10)
+const ADMIN_ALERT_COOLDOWN_MS = parseInt(process.env.ADMIN_ALERT_COOLDOWN_MINUTES || '5', 10) * 60 * 1000
+const ADMIN_SESSION_TTL_MS = parseInt(process.env.ADMIN_SESSION_TTL_HOURS || '8', 10) * 60 * 60 * 1000
+
+const adminSessions = new Map()
+const adminLoginState = new Map()
+
+function isStrongAdminPassword(password) {
+  const value = String(password || '')
+  return (
+    value.length >= 16
+    && /[a-z]/.test(value)
+    && /[A-Z]/.test(value)
+    && /\d/.test(value)
+    && /[^a-zA-Z0-9]/.test(value)
+  )
+}
+
+function verifyAdminPassword(password) {
+  const input = String(password || '')
+  if (!input) return false
+
+  if (ADMIN_PASSWORD_HASH) {
+    const parts = ADMIN_PASSWORD_HASH.split('$')
+    if (parts.length === 4 && parts[0] === 'pbkdf2') {
+      const iterations = Number(parts[1])
+      const saltHex = parts[2]
+      const hashHex = parts[3]
+      if (Number.isFinite(iterations) && iterations > 0 && saltHex && hashHex) {
+        try {
+          const expected = Buffer.from(hashHex, 'hex')
+          const actual = crypto.pbkdf2Sync(input, Buffer.from(saltHex, 'hex'), iterations, expected.length, 'sha512')
+          return expected.length === actual.length && crypto.timingSafeEqual(expected, actual)
+        } catch (_) {
+          return false
+        }
+      }
+    }
+    return false
+  }
+
+  if (!ADMIN_PASSWORD) return false
+  const a = Buffer.from(input, 'utf8')
+  const b = Buffer.from(ADMIN_PASSWORD, 'utf8')
+  return a.length === b.length && crypto.timingSafeEqual(a, b)
+}
+
+function adminAuthConfigured() {
+  return Boolean(ADMIN_PASSWORD || ADMIN_PASSWORD_HASH)
+}
+
+function getClientAddress(req) {
+  return String(req.ip || req.headers['x-forwarded-for'] || '').trim()
+}
+
+function getUserAgent(req) {
+  return String(req.headers['user-agent'] || '').trim()
+}
+
+function createAdminSession(req) {
+  const now = Date.now()
+  const token = crypto.randomBytes(32).toString('hex')
+  const ip = getClientAddress(req)
+  const userAgent = getUserAgent(req)
+  adminSessions.set(token, {
+    token,
+    ip,
+    userAgent,
+    createdAt: now,
+    expiresAt: now + ADMIN_SESSION_TTL_MS,
+    lastSeenAt: now,
+  })
+  return { token, expiresInSec: Math.floor(ADMIN_SESSION_TTL_MS / 1000) }
+}
+
+function readBearerToken(req) {
+  const auth = String(req.headers.authorization || '')
+  if (!auth.startsWith('Bearer ')) return ''
+  return auth.slice(7).trim()
+}
+
+function cleanupAdminState() {
+  const now = Date.now()
+  adminSessions.forEach((session, token) => {
+    if (!session || session.expiresAt <= now) adminSessions.delete(token)
+  })
+  adminLoginState.forEach((entry, ip) => {
+    if (!entry) return adminLoginState.delete(ip)
+    const hasBlock = entry.blockedUntil && entry.blockedUntil > now
+    const recent = entry.lastFailedAt && (now - entry.lastFailedAt < ADMIN_FAIL_WINDOW_MS)
+    if (!hasBlock && !recent) adminLoginState.delete(ip)
+  })
+}
+
+function getLoginAttemptEntry(ip) {
+  cleanupAdminState()
+  const key = String(ip || 'unknown')
+  const now = Date.now()
+  const current = adminLoginState.get(key)
+  if (!current) {
+    const next = { failCount: 0, windowStartedAt: now, blockedUntil: 0, lastFailedAt: 0, lastAlertAt: 0 }
+    adminLoginState.set(key, next)
+    return next
+  }
+  if (current.windowStartedAt + ADMIN_FAIL_WINDOW_MS < now) {
+    current.failCount = 0
+    current.windowStartedAt = now
+  }
+  return current
+}
+
+function getBlockInfo(ip) {
+  const entry = getLoginAttemptEntry(ip)
+  const now = Date.now()
+  if (!entry.blockedUntil || entry.blockedUntil <= now) return null
+  return { retryAfterSec: Math.ceil((entry.blockedUntil - now) / 1000) }
+}
+
+function shouldNotifyBlockedAttempt(ip) {
+  const entry = getLoginAttemptEntry(ip)
+  const now = Date.now()
+  if (!entry.blockedUntil || entry.blockedUntil <= now) return false
+  if (entry.lastAlertAt && (now - entry.lastAlertAt) < ADMIN_ALERT_COOLDOWN_MS) return false
+  entry.lastAlertAt = now
+  return true
+}
+
+function clearLoginAttempts(ip) {
+  const key = String(ip || 'unknown')
+  adminLoginState.delete(key)
+}
+
+function recordFailedAdminLogin(ip) {
+  const entry = getLoginAttemptEntry(ip)
+  const now = Date.now()
+  entry.failCount += 1
+  entry.lastFailedAt = now
+
+  let locked = false
+  if (entry.failCount >= ADMIN_MAX_FAILS) {
+    entry.blockedUntil = now + ADMIN_BLOCK_MS
+    entry.failCount = 0
+    entry.windowStartedAt = now
+    locked = true
+  }
+
+  const isRepeated = entry.failCount >= ADMIN_ALERT_THRESHOLD || locked
+  const canNotify = isRepeated && (!entry.lastAlertAt || (now - entry.lastAlertAt) >= ADMIN_ALERT_COOLDOWN_MS)
+  if (canNotify) entry.lastAlertAt = now
+
+  const blocked = getBlockInfo(ip)
+  return { locked, shouldNotify: canNotify, retryAfterSec: blocked ? blocked.retryAfterSec : 0 }
+}
+
+async function notifyAdminSecurityEvent({ event, req, details }) {
+  const now = new Date().toISOString()
+  const ip = getClientAddress(req)
+  const userAgent = getUserAgent(req)
+  const prettyNow = formatDateTimeRu(now)
+  const safeDetails = String(details || '').trim()
+  const subject = `Сигнал безопасности: ${event}`
+  const text = [
+    `Событие: ${event}`,
+    `Время: ${prettyNow}`,
+    `IP: ${ip || '—'}`,
+    `User-Agent: ${userAgent || '—'}`,
+    safeDetails ? `Детали: ${safeDetails}` : '',
+  ].filter(Boolean).join('\n')
+  const html = `
+    <div style="font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;">
+      <h3>Сигнал безопасности</h3>
+      <div><b>Событие:</b> ${escapeHtml(event)}</div>
+      <div><b>Время:</b> ${escapeHtml(prettyNow)}</div>
+      <div><b>IP:</b> ${escapeHtml(ip || '—')}</div>
+      <div><b>User-Agent:</b> ${escapeHtml(userAgent || '—')}</div>
+      ${safeDetails ? `<div><b>Детали:</b> ${escapeHtml(safeDetails)}</div>` : ''}
+    </div>
+  `.trim()
+
+  try {
+    await sendEmail({ subject, text, html })
+  } catch (err) {
+    console.error('Failed to send admin security email', err)
+  }
+}
+
+function requireAdminAuth(req, res, next) {
+  cleanupAdminState()
+  const token = readBearerToken(req)
+  if (!token) return res.status(401).json({ ok: false, error: 'Admin auth required' })
+
+  const session = adminSessions.get(token)
+  if (!session) return res.status(401).json({ ok: false, error: 'Admin session is invalid' })
+  if (session.expiresAt <= Date.now()) {
+    adminSessions.delete(token)
+    return res.status(401).json({ ok: false, error: 'Admin session expired' })
+  }
+
+  session.lastSeenAt = Date.now()
+  req.adminSession = session
+  next()
+}
 
 function escapeHtml(value) {
   return String(value ?? '')
@@ -153,6 +362,7 @@ function buildOrderEmail({ now, order, markdown, ip }) {
   const buyerName = String(safeOrder.buyerName || '').trim()
   const buyerPhone = String(safeOrder.buyerPhone || '').trim()
   const buyerEmail = String(safeOrder.buyerEmail || '').trim()
+  const deliveryAddress = String(safeOrder.deliveryAddress || '').trim()
 
   const materialTotal = safeOrder.materialTotal
   const delivery = safeOrder.delivery
@@ -188,9 +398,11 @@ function buildOrderEmail({ now, order, markdown, ip }) {
         </tr>
       `.trim()
 
-  const deliveryLabel = (km !== undefined && km !== null && String(km).trim() !== '')
-    ? `Доставка (${escapeHtml(km)} км)`
-    : 'Доставка'
+  const deliveryLabel = deliveryAddress
+    ? `Доставка (адрес: ${escapeHtml(deliveryAddress)})`
+    : ((km !== undefined && km !== null && String(km).trim() !== '')
+      ? `Доставка (${escapeHtml(km)} км)`
+      : 'Доставка')
 
   const totalsHtml = `
     <table role="presentation" style="width:100%;border-collapse:collapse;margin-top:16px;">
@@ -254,6 +466,7 @@ function buildOrderEmail({ now, order, markdown, ip }) {
                 <div style="margin:4px 0;"><span style="color:#6b7280;">Покупатель:</span> ${escapeHtml(buyerName || '—')}</div>
                 <div style="margin:4px 0;"><span style="color:#6b7280;">Телефон:</span> ${escapeHtml(buyerPhone || '—')}</div>
                 <div style="margin:4px 0;"><span style="color:#6b7280;">Email:</span> ${buyerEmail ? `<a href="mailto:${escapeHtml(buyerEmail)}" style="color:#2563eb;text-decoration:none;">${escapeHtml(buyerEmail)}</a>` : '—'}</div>
+                <div style="margin:4px 0;"><span style="color:#6b7280;">Адрес объекта:</span> ${escapeHtml(deliveryAddress || '—')}</div>
               </div>
             </div>
 
@@ -432,6 +645,21 @@ console.log(
   })
 )
 console.log(`Concrete price file: ${concretePriceFile}`)
+console.log(
+  'Admin auth config:',
+  JSON.stringify({
+    configured: adminAuthConfigured(),
+    passwordSource: ADMIN_PASSWORD_HASH ? 'ADMIN_PASSWORD_HASH' : (ADMIN_PASSWORD ? 'ADMIN_PASSWORD' : 'missing'),
+    bruteForce: {
+      maxFails: ADMIN_MAX_FAILS,
+      failWindowMinutes: Math.round(ADMIN_FAIL_WINDOW_MS / 60000),
+      blockMinutes: Math.round(ADMIN_BLOCK_MS / 60000),
+    },
+  })
+)
+if (ADMIN_PASSWORD && !isStrongAdminPassword(ADMIN_PASSWORD)) {
+  console.warn('WARNING: ADMIN_PASSWORD is weak. Use 16+ chars with upper/lower/digit/symbol.')
+}
 
 app.get('/api/email/status', async (req, res) => {
   const { toEmail, fromEmail, fromName } = getEnvelopeFromEnv()
@@ -466,6 +694,67 @@ app.post('/api/email/test', async (req, res) => {
     const info = classifyEmailError(err)
     res.status(500).json({ ok: false, error: info.message, code: info.code, statusCode: info.statusCode, hint: info.hint })
   }
+})
+
+app.post('/api/admin/login', async (req, res) => {
+  if (!adminAuthConfigured()) {
+    return res.status(503).json({ ok: false, error: 'Админ-доступ не настроен на сервере (ADMIN_PASSWORD/ADMIN_PASSWORD_HASH).' })
+  }
+
+  const ip = getClientAddress(req)
+  const blocked = getBlockInfo(ip)
+  if (blocked) {
+    if (shouldNotifyBlockedAttempt(ip)) {
+      await notifyAdminSecurityEvent({
+        event: 'Повторная попытка входа во время блокировки',
+        req,
+        details: `До разблокировки: ${blocked.retryAfterSec} сек.`,
+      })
+    }
+    return res.status(429).json({
+      ok: false,
+      error: `Слишком много попыток входа. Повторите через ${blocked.retryAfterSec} сек.`,
+      retryAfterSec: blocked.retryAfterSec,
+    })
+  }
+
+  const password = req.body && req.body.password ? String(req.body.password) : ''
+  if (!verifyAdminPassword(password)) {
+    const failed = recordFailedAdminLogin(ip)
+    if (failed.shouldNotify) {
+      await notifyAdminSecurityEvent({
+        event: failed.locked ? 'Блокировка админ-входа (bruteforce)' : 'Повторные неуспешные попытки админ-входа',
+        req,
+        details: failed.locked
+          ? `Вход заблокирован на ${Math.round(ADMIN_BLOCK_MS / 60000)} мин.`
+          : 'Неверный пароль введён несколько раз подряд.',
+      })
+    }
+    if (failed.retryAfterSec > 0) {
+      return res.status(429).json({
+        ok: false,
+        error: `Слишком много попыток входа. Повторите через ${failed.retryAfterSec} сек.`,
+        retryAfterSec: failed.retryAfterSec,
+      })
+    }
+    return res.status(401).json({ ok: false, error: 'Неверный пароль' })
+  }
+
+  clearLoginAttempts(ip)
+  const session = createAdminSession(req)
+  await notifyAdminSecurityEvent({
+    event: 'Успешный вход в админ-панель',
+    req,
+    details: `Сессия активна ${Math.round(ADMIN_SESSION_TTL_MS / 3600000)} ч.`,
+  })
+
+  res.json({ ok: true, token: session.token, expiresInSec: session.expiresInSec })
+})
+
+app.post('/api/admin/logout', requireAdminAuth, (req, res) => {
+  const token = readBearerToken(req)
+  if (token) adminSessions.delete(token)
+  res.json({ ok: true })
 })
 
 app.post('/api/order', async (req, res) => {
@@ -571,7 +860,7 @@ app.get('/api/prices', (req, res) => {
   res.json(prices)
 })
 
-app.post('/api/prices', (req, res) => {
+app.post('/api/prices', requireAdminAuth, async (req, res) => {
   const { mark, price } = req.body
   if (!mark || !price) {
     return res.status(400).json({ error: 'Mark and price are required' })
@@ -580,6 +869,11 @@ app.post('/api/prices', (req, res) => {
   const prices = loadPrices()
   prices.push({ mark, price })
   savePrices(prices)
+  await notifyAdminSecurityEvent({
+    event: 'Изменение прайса (legacy /api/prices)',
+    req,
+    details: `Добавлена позиция: ${mark}`,
+  })
 
   res.status(201).json({ message: 'Price added successfully' })
 })
@@ -590,7 +884,7 @@ app.get('/api/concrete-price', (req, res) => {
   res.json(data)
 })
 
-app.put('/api/concrete-price', (req, res) => {
+app.put('/api/concrete-price', requireAdminAuth, async (req, res) => {
   const payload = req.body
   if (!payload || typeof payload !== 'object') {
     return res.status(400).json({ ok: false, error: 'Payload is required' })
@@ -601,6 +895,15 @@ app.put('/api/concrete-price', (req, res) => {
 
   try {
     saveConcretePriceInfo(payload)
+    const sectionCount = Array.isArray(payload.sections) ? payload.sections.length : 0
+    const rowCount = Array.isArray(payload.sections)
+      ? payload.sections.reduce((sum, section) => sum + (Array.isArray(section && section.rows) ? section.rows.length : 0), 0)
+      : 0
+    await notifyAdminSecurityEvent({
+      event: 'Изменение данных прайса (/api/concrete-price)',
+      req,
+      details: `Разделов: ${sectionCount}, строк: ${rowCount}`,
+    })
     res.json({ ok: true })
   } catch (err) {
     console.error('Failed to save concrete price data', err)

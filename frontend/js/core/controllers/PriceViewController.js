@@ -113,7 +113,9 @@ export class PriceViewController {
 
     const dispatcherTelegram = document.getElementById('headerTelegramDispatcherLink')
     const dispatcherPhoneLink = document.getElementById('headerDispatcherPhoneLink')
+    const dispatcherMaxLink = document.getElementById('headerDispatcherMaxLink')
     if (dispatcherTelegram) dispatcherTelegram.href = PhoneUtils.telegramPhoneUrl(dispatcherPhone)
+    if (dispatcherMaxLink) dispatcherMaxLink.href = PhoneUtils.telHref(dispatcherPhone)
     if (dispatcherPhoneLink) {
       dispatcherPhoneLink.textContent = dispatcherPhone || '—'
       dispatcherPhoneLink.href = PhoneUtils.telHref(dispatcherPhone)
@@ -121,7 +123,9 @@ export class PriceViewController {
 
     const salesTelegram = document.getElementById('headerTelegramSalesLink')
     const salesPhoneLink = document.getElementById('headerSalesPhoneLink')
+    const salesMaxLink = document.getElementById('headerSalesMaxLink')
     if (salesTelegram) salesTelegram.href = PhoneUtils.telegramPhoneUrl(salesPhone)
+    if (salesMaxLink) salesMaxLink.href = PhoneUtils.telHref(salesPhone)
     if (salesPhoneLink) {
       salesPhoneLink.textContent = salesPhone || '—'
       salesPhoneLink.href = PhoneUtils.telHref(salesPhone)
@@ -191,21 +195,25 @@ export class PriceViewController {
     }
 
     const notes = data.notes || {}
-    const renderList = (title, items) => {
+    const renderList = (title, items, extraClass = '') => {
       if (!Array.isArray(items) || items.length === 0) return ''
       return `
-        <div class="about-secondary-block">
+        <div class="about-secondary-block${extraClass ? ` ${TextUtils.escapeHtml(extraClass)}` : ''}">
           <div class="about-secondary-title">${TextUtils.escapeHtml(title)}</div>
           <ul class="about-secondary-list">${items.map((item) => `<li>${TextUtils.escapeHtml(item)}</li>`).join('')}</ul>
         </div>
       `.trim()
     }
 
+    const mixerAndDelivery = [
+      ...(Array.isArray(notes.mixerService) ? notes.mixerService : []),
+      ...(Array.isArray(notes.deliveryRates) ? notes.deliveryRates : []),
+    ]
+
     container.innerHTML = [
       renderList('Оплата', notes.payment),
       renderList('Разгрузка и простой', notes.unloading),
-      renderList('Услуги АБС', notes.mixerService),
-      renderList('Доставка (рейс)', notes.deliveryRates),
+      renderList('АБС и доставка', mixerAndDelivery, 'about-secondary-block--wide'),
     ].filter(Boolean).join('') || '<div class="small">Информация временно недоступна.</div>'
   }
 }
