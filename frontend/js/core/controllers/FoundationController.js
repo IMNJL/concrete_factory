@@ -42,6 +42,61 @@ export class FoundationController {
 
     if (calcButton) calcButton.addEventListener('click', () => this.calculate())
     if (clearButton) clearButton.addEventListener('click', () => this.clear())
+
+    this.initNumericInputs()
+  }
+
+  initNumericInputs() {
+    Object.values(this.inputs).filter(Boolean).forEach((input) => {
+      input.addEventListener('keydown', (event) => {
+        if (this.isAllowedNumericKey(event, input)) return
+        event.preventDefault()
+      })
+
+      input.addEventListener('input', () => {
+        const sanitized = this.sanitizeDecimalInput(input.value)
+        if (input.value !== sanitized) input.value = sanitized
+        input.classList.remove('is-invalid')
+      })
+
+      input.addEventListener('paste', (event) => {
+        event.preventDefault()
+        const text = event.clipboardData ? event.clipboardData.getData('text') : ''
+        input.value = this.sanitizeDecimalInput(text)
+        input.classList.remove('is-invalid')
+      })
+    })
+  }
+
+  isAllowedNumericKey(event, input) {
+    if (event.ctrlKey || event.metaKey || event.altKey) return true
+    const key = event.key
+
+    const editKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Home', 'End', 'Tab']
+    if (editKeys.includes(key)) return true
+
+    if (/^\d$/.test(key)) return true
+
+    if (key === '.' || key === ',') {
+      const value = String(input.value || '')
+      return !value.includes('.') && !value.includes(',')
+    }
+
+    return false
+  }
+
+  sanitizeDecimalInput(rawValue) {
+    let value = String(rawValue ?? '')
+      .replace(',', '.')
+      .replace(/[^0-9.]/g, '')
+
+    const firstDot = value.indexOf('.')
+    if (firstDot !== -1) {
+      value = value.slice(0, firstDot + 1) + value.slice(firstDot + 1).replace(/\./g, '')
+    }
+
+    if (value.startsWith('.')) value = `0${value}`
+    return value
   }
 
   clearInvalid() {

@@ -8,6 +8,8 @@ export class ContactFormController {
   init() {
     if (!this.form) return
 
+    this.initPhonePrefix()
+
     this.form.addEventListener('submit', async (e) => {
       e.preventDefault()
       if (this.status) this.status.textContent = 'Отправка...'
@@ -30,5 +32,32 @@ export class ContactFormController {
         alert(`Ошибка отправки формы.\n${error.message}`)
       }
     })
+  }
+
+  initPhonePrefix() {
+    const phoneInput = this.form.querySelector('input[name="tel"], input[name="phone"], input[type="tel"]')
+    if (!phoneInput) return
+
+    phoneInput.addEventListener('focus', () => {
+      const current = String(phoneInput.value || '').trim()
+      if (!current) phoneInput.value = '+7 '
+    })
+
+    phoneInput.addEventListener('input', () => {
+      const next = this.normalizePhoneValue(phoneInput.value)
+      if (phoneInput.value !== next) phoneInput.value = next
+    })
+  }
+
+  normalizePhoneValue(value) {
+    const raw = String(value || '')
+      .replace(/[^\d+()\s-]/g, '')
+    const digits = raw.replace(/\D/g, '')
+
+    if (!digits) return '+7 '
+    if (raw.startsWith('+7')) return raw
+    if (raw.startsWith('8')) return `+7${raw.slice(1)}`
+    if (raw.startsWith('7')) return `+${raw}`
+    return `+7 ${digits}`
   }
 }

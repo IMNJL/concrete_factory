@@ -31,8 +31,14 @@ export class CalculatorController {
     }
 
     if (buyerPhone) {
+      buyerPhone.addEventListener('focus', () => {
+        const current = String(buyerPhone.value || '').trim()
+        if (!current) buyerPhone.value = '+7 '
+      })
+
       buyerPhone.addEventListener('input', () => {
-        const cleaned = BuyerValidator.sanitizePhoneInput(buyerPhone.value)
+        const withPrefix = this.ensurePhoneStartsWithPlus7(buyerPhone.value)
+        const cleaned = BuyerValidator.sanitizePhoneInput(withPrefix)
         if (buyerPhone.value !== cleaned) buyerPhone.value = cleaned
         DomUtils.setInvalid(buyerPhone, !BuyerValidator.isValidPhone(buyerPhone.value))
       })
@@ -43,6 +49,16 @@ export class CalculatorController {
         DomUtils.setInvalid(buyerEmail, !BuyerValidator.isValidEmail(buyerEmail.value))
       })
     }
+  }
+
+  ensurePhoneStartsWithPlus7(value) {
+    const raw = String(value || '')
+    const digits = raw.replace(/\D/g, '')
+    if (!digits) return '+7 '
+    if (raw.startsWith('+7')) return raw
+    if (raw.startsWith('8')) return `+7${raw.slice(1)}`
+    if (raw.startsWith('7')) return `+${raw}`
+    return `+7 ${digits}`
   }
 
   initDeliveryInput() {
