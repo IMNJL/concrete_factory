@@ -1228,6 +1228,40 @@ body.is-menu-open {
   margin-bottom: 8px;
 }
 
+.top-phone-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.top-company-phone-link {
+  color: inherit;
+  text-decoration: none;
+  margin-bottom: 0;
+}
+
+.top-company-phone-link:hover {
+  text-decoration: underline;
+}
+
+.max-contact-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid rgba(2, 6, 23, 0.12);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.max-contact-link img {
+  width: 22px;
+  height: 22px;
+  display: block;
+}
+
 .top-company-address-link {
   color: inherit;
   text-decoration: underline;

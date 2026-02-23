@@ -1,5 +1,7 @@
 import { PhoneUtils, PriceFormatter, TextUtils } from '../utils.js'
 
+const SALES_MAX_URL = 'https://max.ru/u/f9LHodD0cOJ8VJsx6bZSRmaL77_cCOKRXJrVTLAYxe-2ylGJE3xjRpq7OjM'
+
 export class PriceViewController {
   constructor(contentService) {
     this.contentService = contentService
@@ -125,7 +127,7 @@ export class PriceViewController {
     const salesPhoneLink = document.getElementById('headerSalesPhoneLink')
     const salesMaxLink = document.getElementById('headerSalesMaxLink')
     if (salesTelegram) salesTelegram.href = PhoneUtils.telegramPhoneUrl(salesPhone)
-    if (salesMaxLink) salesMaxLink.href = PhoneUtils.telHref(salesPhone)
+    if (salesMaxLink) salesMaxLink.href = SALES_MAX_URL
     if (salesPhoneLink) {
       salesPhoneLink.textContent = salesPhone || '—'
       salesPhoneLink.href = PhoneUtils.telHref(salesPhone)
