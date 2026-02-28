@@ -40,6 +40,7 @@ export class ContentService {
   constructor() {
     this.concreteInfoPromise = null
     this.companyInfoPromise = null
+    this.adminToken = null
   }
 
   loadConcretePriceInfo() {
@@ -57,7 +58,7 @@ export class ContentService {
   async saveConcretePriceInfoOverride(data) {
     const response = await fetch(AppConfigService.apiUrl('/api/concrete-price'), {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: this.getAdminHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify(data),
     })
 
@@ -67,6 +68,45 @@ export class ContentService {
     }
 
     this.concreteInfoPromise = Promise.resolve(data)
+  }
+
+  getAdminHeaders(baseHeaders = {}) {
+    const headers = { ...baseHeaders }
+    if (this.adminToken) headers.Authorization = `Bearer ${this.adminToken}`
+    return headers
+  }
+
+  async adminLogin(password) {
+    const response = await fetch(AppConfigService.apiUrl('/api/admin/login'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password }),
+    })
+
+    const data = await response.json().catch(() => null)
+    if (!response.ok) {
+      const message = (data && (data.error || data.message)) ? String(data.error || data.message) : 'Не удалось выполнить вход'
+      const err = new Error(message)
+      err.status = response.status
+      err.payload = data
+      throw err
+    }
+
+    this.adminToken = data && data.token ? String(data.token) : null
+    return data
+  }
+
+  async adminLogout() {
+    try {
+      await fetch(AppConfigService.apiUrl('/api/admin/logout'), {
+        method: 'POST',
+        headers: this.getAdminHeaders(),
+      })
+    } catch (_) {
+      // noop
+    } finally {
+      this.adminToken = null
+    }
   }
 
   loadCompanyInfo() {

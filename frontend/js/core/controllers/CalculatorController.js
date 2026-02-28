@@ -7,7 +7,7 @@ export class CalculatorController {
     this.orderApiService = orderApiService
 
     this.calcResult = document.getElementById('calcResult')
-    this.deliveryKm = document.getElementById('deliveryKm')
+    this.deliveryAddress = document.getElementById('deliveryAddress')
     this.submitStatus = document.getElementById('submitStatus')
   }
 
@@ -31,8 +31,14 @@ export class CalculatorController {
     }
 
     if (buyerPhone) {
+      buyerPhone.addEventListener('focus', () => {
+        const current = String(buyerPhone.value || '').trim()
+        if (!current) buyerPhone.value = '+7 '
+      })
+
       buyerPhone.addEventListener('input', () => {
-        const cleaned = BuyerValidator.sanitizePhoneInput(buyerPhone.value)
+        const withPrefix = this.ensurePhoneStartsWithPlus7(buyerPhone.value)
+        const cleaned = BuyerValidator.sanitizePhoneInput(withPrefix)
         if (buyerPhone.value !== cleaned) buyerPhone.value = cleaned
         DomUtils.setInvalid(buyerPhone, !BuyerValidator.isValidPhone(buyerPhone.value))
       })
@@ -45,12 +51,20 @@ export class CalculatorController {
     }
   }
 
+  ensurePhoneStartsWithPlus7(value) {
+    const raw = String(value || '')
+    const digits = raw.replace(/\D/g, '')
+    if (!digits) return '+7 '
+    if (raw.startsWith('+7')) return raw
+    if (raw.startsWith('8')) return `+7${raw.slice(1)}`
+    if (raw.startsWith('7')) return `+${raw}`
+    return `+7 ${digits}`
+  }
+
   initDeliveryInput() {
-    if (!this.deliveryKm) return
-    this.deliveryKm.addEventListener('input', () => {
-      const cleaned = String(this.deliveryKm.value || '').replace(/\D+/g, '')
-      if (this.deliveryKm.value !== cleaned) this.deliveryKm.value = cleaned
-      this.deliveryKm.classList.remove('is-invalid')
+    if (!this.deliveryAddress) return
+    this.deliveryAddress.addEventListener('input', () => {
+      this.deliveryAddress.classList.remove('is-invalid')
     })
   }
 
@@ -69,7 +83,7 @@ export class CalculatorController {
         }
 
         if (this.calcResult) {
-          this.calcResult.textContent = `Итог: ${PriceFormatter.formatPrice(result.total)} ₽ (материал ${PriceFormatter.formatPrice(result.materialTotal)} ₽ + доставка ${PriceFormatter.formatPrice(result.delivery)} ₽)`
+          this.calcResult.textContent = `Итог по материалу: ${PriceFormatter.formatPrice(result.total)} ₽. Доставка: по согласованию после звонка.`
         }
       })
     }
@@ -77,9 +91,9 @@ export class CalculatorController {
     if (clearButton) {
       clearButton.addEventListener('click', () => {
         this.typeRowsController.resetVolumes()
-        if (this.deliveryKm) {
-          this.deliveryKm.value = '5'
-          this.deliveryKm.classList.remove('is-invalid')
+        if (this.deliveryAddress) {
+          this.deliveryAddress.value = ''
+          this.deliveryAddress.classList.remove('is-invalid')
         }
         if (this.calcResult) this.calcResult.textContent = '—'
       })
@@ -107,7 +121,7 @@ export class CalculatorController {
       const input = row.querySelector('.type-volume')
       if (input) input.classList.remove('is-invalid')
     })
-    if (this.deliveryKm) this.deliveryKm.classList.remove('is-invalid')
+    if (this.deliveryAddress) this.deliveryAddress.classList.remove('is-invalid')
 
     let materialTotal = 0
     const details = []
@@ -155,24 +169,16 @@ export class CalculatorController {
       })
     }
 
-    const kmRaw = this.deliveryKm ? String(this.deliveryKm.value || '').trim() : ''
-    const kmNum = this.deliveryKm ? NumberUtils.parseLocaleNumber(kmRaw) : NaN
-
-    if (kmRaw && !Number.isFinite(kmNum)) {
-      if (this.deliveryKm) this.deliveryKm.classList.add('is-invalid')
-      return { error: 'Расстояние доставки должно быть числом.' }
+    const deliveryAddress = this.deliveryAddress ? String(this.deliveryAddress.value || '').trim() : ''
+    if (!deliveryAddress || deliveryAddress.length < 2) {
+      if (this.deliveryAddress) this.deliveryAddress.classList.add('is-invalid')
+      return { error: 'Укажите адрес объекта (населённый пункт).' }
     }
 
-    if (Number.isFinite(kmNum) && kmNum < 0) {
-      if (this.deliveryKm) this.deliveryKm.classList.add('is-invalid')
-      return { error: 'Расстояние доставки не может быть отрицательным.' }
-    }
+    const delivery = 'по согласованию'
+    const total = Math.round(materialTotal)
 
-    const km = Number.isFinite(kmNum) ? kmNum : 0
-    const delivery = 1500 + (50 * km)
-    const total = Math.round(materialTotal + delivery)
-
-    return { details, materialTotal, delivery, total, km }
+    return { details, materialTotal, delivery, total, deliveryAddress }
   }
 
   async submitOrder() {
@@ -207,7 +213,7 @@ export class CalculatorController {
       return
     }
 
-    const { details, materialTotal, delivery, total, km } = result
+    const { details, materialTotal, delivery, total, deliveryAddress } = result
     const lines = []
     lines.push('| № | Тип | Класс/марка | Объём (м³) | Цена/м³ | Стоимость |')
     lines.push('|---:|---|---|---:|---:|---:|')
@@ -219,7 +225,8 @@ export class CalculatorController {
 
     lines.push('')
     lines.push(`**Материал:** ${PriceFormatter.formatPrice(materialTotal)} ₽`)
-    lines.push(`**Доставка (${km} км):** ${PriceFormatter.formatPrice(delivery)} ₽`)
+    lines.push(`**Доставка:** ${delivery}`)
+    lines.push(`**Адрес объекта:** ${deliveryAddress}`)
     lines.push(`**Итог:** ${PriceFormatter.formatPrice(total)} ₽`)
     lines.push('')
     lines.push(`**Покупатель:** ${buyerName}`)
@@ -231,7 +238,7 @@ export class CalculatorController {
     try {
       const response = await this.orderApiService.submitOrder({
         markdown: lines.join('\n'),
-        order: { details, materialTotal, delivery, total, km, buyerName, buyerPhone, buyerEmail },
+        order: { details, materialTotal, delivery, total, deliveryAddress, buyerName, buyerPhone, buyerEmail },
       })
 
       if (response && response.email && response.email.attempted && !response.email.sent) {

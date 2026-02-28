@@ -117,7 +117,14 @@ export class AdminController {
     const mapSrc = document.getElementById('mapSrc')
     if (!pass || !this.area) return
 
-    if (pass.value === 'admin123') {
+    const raw = String(pass.value || '')
+    if (!raw.trim()) {
+      if (this.status) this.status.textContent = 'Введите пароль'
+      return
+    }
+
+    try {
+      await this.contentService.adminLogin(raw)
       await this.ensureConcreteData()
       this.area.classList.remove('is-hidden')
       pass.value = ''
@@ -126,10 +133,11 @@ export class AdminController {
       if (mapSrc) mapSrc.value = this.getAppData().mapSrc || ''
       if (this.status) this.status.textContent = 'Доступ открыт'
       return
+    } catch (err) {
+      const msg = err && err.message ? String(err.message) : 'Ошибка входа'
+      if (this.status) this.status.textContent = msg
+      alert(msg)
     }
-
-    if (this.status) this.status.textContent = 'Неверный пароль'
-    alert('Неверный пароль')
   }
 
   getSelectedSectionIndex() {
@@ -325,8 +333,9 @@ export class AdminController {
       if (this.status) this.status.textContent = 'Прайс обновлён на сервере'
     } catch (err) {
       console.error(err)
-      if (this.status) this.status.textContent = 'Ошибка сохранения на сервере'
-      alert('Не удалось сохранить прайс на сервере. Проверьте, что backend запущен и доступен.')
+      const message = err && err.message ? String(err.message) : 'Не удалось сохранить прайс на сервере.'
+      if (this.status) this.status.textContent = message
+      alert(message)
     }
   }
 

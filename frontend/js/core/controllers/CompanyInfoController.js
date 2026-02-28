@@ -14,7 +14,10 @@ export class CompanyInfoController {
     }
 
     const topPhone = document.getElementById('topCompanyPhone')
-    if (topPhone) topPhone.textContent = phone || '—'
+    if (topPhone) {
+      topPhone.textContent = phone || '—'
+      topPhone.href = PhoneUtils.telHref(phone)
+    }
 
     const topAddressLink = document.getElementById('topCompanyAddressLink')
     if (topAddressLink) {
